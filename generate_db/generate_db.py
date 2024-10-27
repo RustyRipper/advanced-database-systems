@@ -2,6 +2,7 @@ import csv
 import random
 from datetime import datetime, timedelta
 from faker import Faker
+import string
 
 fake = Faker()
 
@@ -83,8 +84,28 @@ def generate_parking_spot_data(num_spots=NUM_SPOTS, num_parking=NUM_PARKING):
             'id': _ + 1,
             'parking_id': random.randint(1, num_parking),
             'active': random.choice(['Y', 'N']),
-            'spot_number': fake.unique.uuid4()
+            'spot_number': 'temp'
         })
+    # Zmodyfikuj spot number aby odpowiadał A1, A2, ..., B1 itd dla danego parkingu
+    # Numer ostatniego numeru i litery miejsca wpisanego do parkingu
+    spot_numbers_by_parking = {parking_id: (0, 1) for parking_id in range(1, num_parking + 1)}
+    
+    # Zamień wpis "temp" na miejsce typu A1, C3
+    for entry in data:
+        parking_id = entry['parking_id']
+        
+        letter_index, spot_number = spot_numbers_by_parking[parking_id]
+        letter = string.ascii_uppercase[letter_index]
+        
+        entry['spot_number'] = f"{letter}{spot_number}"
+        
+        spot_number += 1
+        if spot_number > 9:
+            spot_number = 1
+            letter_index += 1
+        
+        spot_numbers_by_parking[parking_id] = (letter_index, spot_number)
+    
     return data
 
 

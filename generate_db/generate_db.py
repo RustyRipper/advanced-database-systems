@@ -5,8 +5,15 @@ from faker import Faker
 
 fake = Faker()
 
+NUM_PARKING = 100
+NUM_USERS = 20000
+NUM_CARS = 50000
+NUM_SPOTS = 10000
+NUM_RESERVATIONS = 300000
+NUM_PAYMENTS = 300000
+NUM_CHARGES = 300000
 
-def generate_parking_data(num_parking=100):
+def generate_parking_data(num_parking=NUM_PARKING):
     data = []
     for _ in range(num_parking):
         data.append({
@@ -22,7 +29,7 @@ def generate_parking_data(num_parking=100):
     return data
 
 
-def generate_parking_user_data(num_users=20000, num_parking=100):
+def generate_parking_user_data(num_users=NUM_USERS, num_parking=NUM_PARKING):
     data = []
     for _ in range(num_users):
         data.append({
@@ -39,7 +46,7 @@ def generate_parking_user_data(num_users=20000, num_parking=100):
     return data
 
 
-def generate_client_car_data(num_cars=50000, num_users=20000):
+def generate_client_car_data(num_cars=NUM_CARS, num_users=NUM_USERS):
     data = []
     for _ in range(num_cars):
         data.append({
@@ -54,7 +61,7 @@ def generate_client_car_data(num_cars=50000, num_users=20000):
     return data
 
 
-def generate_parking_spot_data(num_spots=10000, num_parking=100):
+def generate_parking_spot_data(num_spots=NUM_SPOTS, num_parking=NUM_PARKING):
     data = []
     for _ in range(num_spots):
         data.append({
@@ -66,8 +73,8 @@ def generate_parking_spot_data(num_spots=10000, num_parking=100):
     return data
 
 
-def generate_reservation_data(num_reservations=300000, num_spots=10000,
-                              num_users=20000):
+def generate_reservation_data(num_reservations=NUM_RESERVATIONS, num_spots=NUM_SPOTS,
+                              num_users=NUM_USERS):
     data = []
     for _ in range(num_reservations):
         start_date = datetime.now()
@@ -85,7 +92,7 @@ def generate_reservation_data(num_reservations=300000, num_spots=10000,
     return data
 
 
-def generate_payment_data(num_payments=300000, num_reservations=300000):
+def generate_payment_data(num_payments=NUM_PAYMENTS, num_reservations=NUM_RESERVATIONS):
     data = []
     for _ in range(num_payments):
         exp_date = fake.credit_card_expire().split('/')
@@ -102,8 +109,8 @@ def generate_payment_data(num_payments=300000, num_reservations=300000):
     return data
 
 
-def generate_stripe_charge_data(num_charges=300000, num_reservations=300000,
-                                num_payments=300000):
+def generate_stripe_charge_data(num_charges=300000, num_reservations=NUM_RESERVATIONS,
+                                num_payments=NUM_PAYMENTS):
     data = []
     for _ in range(num_charges):
         data.append({

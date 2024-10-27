@@ -16,14 +16,29 @@ NUM_CHARGES = 300000
 def generate_parking_data(num_parking=NUM_PARKING):
     data = []
     for _ in range(num_parking):
+
+        # Czas otwarcia parkingu - 50% szansy na parking będący całodobowy, 50% szansy na parking o określonych godzinach otwarcia
+        if random.choice([True, False]):
+            # Przypadek 1: Losowe godziny otwarcia/zamknięcia
+            open_hour = random.choice([6, 7, 8, 9])
+            open_time = datetime(2000, 1, 1, open_hour, 0, 0).isoformat()
+            
+            close_hour = random.choice([19, 20, 21, 22, 23])
+            close_time = datetime(2000, 1, 1, close_hour, 59, 59, 999999).isoformat()
+        
+        else:
+            # Przypadek 2: Parking całodobowy
+            open_time = datetime(2000, 1, 1, 0, 0, 0).isoformat()
+            close_time = datetime(2000, 1, 1, 23, 59, 59, 999999).isoformat()
+        
         data.append({
             'id': _ + 1,
             'name': fake.unique.company(),
             'city': fake.city(),
             'street': fake.street_name(),
             'zip_code': str(fake.zipcode()),
-            'open_time': datetime.now().isoformat(),
-            'close_time': (datetime.now() + timedelta(hours=8)).isoformat(),
+            'open_time': open_time,
+            'close_time': close_time,
             'cost_rate': round(random.uniform(1.5, 5.0), 2)
         })
     return data

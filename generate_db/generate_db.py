@@ -3,6 +3,7 @@ import random
 from datetime import datetime, timedelta
 from faker import Faker
 import string
+import copy
 
 fake = Faker()
 
@@ -11,8 +12,8 @@ NUM_USERS = 20000
 NUM_CARS = 50000
 NUM_SPOTS = 10000
 NUM_RESERVATIONS = 300000
-NUM_PAYMENTS = 300000
-NUM_CHARGES = 300000
+NUM_PAYMENTS = 290000
+NUM_CHARGES = 290000
 
 def generate_random_datetime(max_years_ago=5):
     # Wygeneruj losową datę sprzed maksymalnie 5 lat
@@ -176,23 +177,48 @@ def generate_reservation_data(num_reservations=NUM_RESERVATIONS, num_spots=NUM_S
     
     return data
 
+def generate_payment_data(num_payments=NUM_PAYMENTS, reservations=None):
+    if reservations is None:
+        raise ValueError("Reservations data must be provided.")
 
-def generate_payment_data(num_payments=NUM_PAYMENTS, num_reservations=NUM_RESERVATIONS):
+    # Nie może być więcej płatności niż rezerwacji
+    num_payments = min(num_payments, len(reservations))
+    
+     # Create a copy of the reservations to avoid modifying the original list
+    reservations_copy = copy.deepcopy(reservations)
+    
+    # Potasuj rezerwacje
+    random.shuffle(reservations_copy)
+    selected_reservations = reservations_copy[:num_payments]
+
     data = []
-    for _ in range(num_payments):
+    for i, reservation in enumerate(selected_reservations):
+        # Dla wybranych rezerwacji wygeneruj płatność
+        reservation_id = reservation['id']
+        start_date = datetime.fromisoformat(reservation['start_date'])
+        
+        # Data płatności jest przed datą rezerwacji start_date
+        payment_date = start_date - + timedelta(
+            days=random.randint(0, 31),
+            hours=random.randint(0, 23),
+            minutes=random.randint(0, 59),
+            seconds=random.randint(0, 59),
+            microseconds=random.randint(0, 999999)
+        )
+        
         exp_date = fake.credit_card_expire().split('/')
         data.append({
-            'id': _ + 1,
-            'reservation_id': random.randint(1, num_reservations),
-            'created_at': datetime.now().isoformat(),
+            'id': i + 1,
+            'reservation_id': reservation_id,
+            'created_at': payment_date.isoformat(),
             'card_number': fake.credit_card_number(),
             'cvc': fake.credit_card_security_code(),
             'exp_month': exp_date[0],
             'exp_year': '20' + exp_date[1],
             'token': fake.unique.uuid4()
         })
+    
     return data
-
 
 def generate_stripe_charge_data(num_charges=300000, num_reservations=NUM_RESERVATIONS,
                                 num_payments=NUM_PAYMENTS):
@@ -226,7 +252,7 @@ if __name__ == "__main__":
     client_car_data = generate_client_car_data()
     parking_spot_data = generate_parking_spot_data()
     reservation_data = generate_reservation_data(client_cars=client_car_data)
-    payment_data = generate_payment_data()
+    payment_data = generate_payment_data(reservations=reservation_data)
     stripe_charge_data = generate_stripe_charge_data()
 
     # Save to CSV

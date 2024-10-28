@@ -125,57 +125,82 @@ def generate_parking_spot_data(num_spots=NUM_SPOTS, num_parking=NUM_PARKING):
     return data
 
 
-def generate_reservation_data(num_reservations=NUM_RESERVATIONS, num_spots=NUM_SPOTS, client_cars=None):
+def generate_reservation_data(num_reservations=NUM_RESERVATIONS, client_cars=None, parking_spot_data=None, parking_data=None):
     if client_cars is None:
         raise ValueError("Client cars data must be provided.")
+    if parking_spot_data is None:
+        raise ValueError("Parking spot data must be provided.")
+    if parking_data is None:
+        raise ValueError("Parking data must be provided.")
 
-    # Słownik z samochodami po id klienta
+    # Upewnij się że początek i koniec rezerwacji mieszczą się w godzinach otwarcia/zamknięcia parkingu
     cars_by_user = {}
     for car in client_cars:
         user_id = car['client_id']
         if user_id not in cars_by_user:
             cars_by_user[user_id] = []
         cars_by_user[user_id].append(car)
-    
+
+    # Słownik mapującym parking spot ID do parking ID
+    spot_to_parking_map = {spot['id']: spot['parking_id'] for spot in parking_spot_data}
+
+    # Słownik mapujący godziny odtwarcia parkingu
+    parking_times = {p['id']: (p['open_time'], p['close_time']) for p in parking_data}
+
     data = []
     for _ in range(num_reservations):
-        # Wylosuj użytkownika, weź listę przypisanych do niego samochodów w celu zdobycia numeru rejestracyjnego
-        # Czas rezerwacji start_date musi być większy od addtion_time samochodu
+        # Wybierz samochód jednego z userów
         user_id = random.choice(list(cars_by_user.keys()))
         user_cars = cars_by_user[user_id]
-
         selected_car = random.choice(user_cars)
         registration_number = selected_car['registration_number']
         
         addition_time = datetime.fromisoformat(selected_car['addition_time'])
         min_start_date = addition_time
-        start_date = min_start_date + timedelta(
-            days=random.randint(0, 31),
-            hours=random.randint(0, 23),
-            minutes=random.randint(0, 59),
-            seconds=random.randint(0, 59),
-            microseconds=random.randint(0, 999999)
-        )
-        end_date = start_date + timedelta(
-            days=random.randint(0, 7),
-            hours=random.randint(0, 23),
-            minutes=random.randint(0, 59),
-            seconds=random.randint(0, 59),
-            microseconds=random.randint(0, 999999)
-        )
+
+        # Wybierz Parking Spot usera
+        active_spots = [spot for spot in parking_spot_data if spot['active'] == 'Y']
+        selected_spot = random.choice(active_spots)
+        parking_spot_id = selected_spot['id']
+        parking_id = spot_to_parking_map[parking_spot_id]
         
-        data.append({
-            'id': _ + 1,
-            'parking_spot_id': random.randint(1, num_spots),
-            'user_id': user_id,
-            'start_date': start_date.isoformat(),
-            'end_date': end_date.isoformat(),
-            'amount': round(random.uniform(10.0, 50.0), 2),
-            'active': random.choice(['Y', 'N']),
-            'registration_number': registration_number
-        })
+        open_time_str, close_time_str = parking_times.get(parking_id, (None, None))
+        open_time = datetime.fromisoformat(open_time_str) if open_time_str else datetime.min
+        close_time = datetime.fromisoformat(close_time_str) if close_time_str else datetime.max
+
+        # Rozpoczęcie jest między otwarciem a zamknięciem
+        start_time_delta = timedelta(
+            hours=random.randint(open_time.hour, close_time.hour),
+            minutes=random.randint(open_time.minute, close_time.minute),
+            seconds=random.randint(open_time.second, close_time.second)
+        )
+        start_date = datetime(min_start_date.year, min_start_date.month, min_start_date.day) + timedelta(days=random.randint(0, 31)) + start_time_delta
+
+        # Koniec rezerwacji przed zamknięciem parkingu
+        end_time_delta = timedelta(
+            hours=random.randint(0, close_time.hour - start_date.hour),
+            minutes=random.randint(0, close_time.minute - start_date.minute),
+            seconds=random.randint(0, close_time.second - start_date.second)
+        )
+        end_date = start_date + end_time_delta
+
+        # Upewnij się że start rezerwacji jest po otwarciu, a koniec przed zamknięciem
+        if start_date.time() >= open_time.time() and end_date.time() <= close_time.time():
+            data.append({
+                'id': _ + 1,
+                'parking_spot_id': parking_spot_id,
+                'user_id': user_id,
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat(),
+                'amount': round(random.uniform(10.0, 50.0), 2),
+                'active': random.choice(['Y', 'N']),
+                'registration_number': registration_number
+            })
+        else:
+            print("RESRVATION ERROR")
     
     return data
+
 
 def generate_payment_data(num_payments=NUM_PAYMENTS, reservations=None):
     if reservations is None:
@@ -197,9 +222,9 @@ def generate_payment_data(num_payments=NUM_PAYMENTS, reservations=None):
         reservation_id = reservation['id']
         start_date = datetime.fromisoformat(reservation['start_date'])
         
-        # Data płatności jest przed datą rezerwacji start_date
-        payment_date = start_date - + timedelta(
-            days=random.randint(0, 31),
+        # Data płatności jest max 7 dni przed datą rezerwacji start_date
+        payment_date = start_date - timedelta(
+            days=random.randint(0, 6),
             hours=random.randint(0, 23),
             minutes=random.randint(0, 59),
             seconds=random.randint(0, 59),
@@ -226,11 +251,9 @@ def generate_stripe_charge_data(payments=None):
 
     data = []
     for payment in payments:
-        # Data stripe charge pojawia sie dopiero po wprowadzeniu płatnośći
+        # Data stripe charge pojawia się maksymalnie minutę przed payment
         payment_date = datetime.fromisoformat(payment['created_at'])
-        charge_date = payment_date + timedelta(
-            hours=random.randint(0, 1),
-            minutes=random.randint(0, 59),
+        charge_date = payment_date - timedelta(
             seconds=random.randint(0, 59),
             microseconds=random.randint(0, 999999)
         )
@@ -263,7 +286,7 @@ if __name__ == "__main__":
     parking_user_data = generate_parking_user_data()
     client_car_data = generate_client_car_data()
     parking_spot_data = generate_parking_spot_data()
-    reservation_data = generate_reservation_data(client_cars=client_car_data)
+    reservation_data = generate_reservation_data(client_cars=client_car_data, parking_data=parking_data, parking_spot_data=parking_spot_data)
     payment_data = generate_payment_data(reservations=reservation_data)
     stripe_charge_data = generate_stripe_charge_data(payments=payment_data)
 

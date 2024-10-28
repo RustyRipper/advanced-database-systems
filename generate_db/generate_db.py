@@ -220,21 +220,33 @@ def generate_payment_data(num_payments=NUM_PAYMENTS, reservations=None):
     
     return data
 
-def generate_stripe_charge_data(num_charges=300000, num_reservations=NUM_RESERVATIONS,
-                                num_payments=NUM_PAYMENTS):
+def generate_stripe_charge_data(payments=None):
+    if payments is None:
+        raise ValueError("Payments data must be provided.")
+
     data = []
-    for _ in range(num_charges):
+    for payment in payments:
+        # Data stripe charge pojawia sie dopiero po wprowadzeniu płatnośći
+        payment_date = datetime.fromisoformat(payment['created_at'])
+        charge_date = payment_date + timedelta(
+            hours=random.randint(0, 1),
+            minutes=random.randint(0, 59),
+            seconds=random.randint(0, 59),
+            microseconds=random.randint(0, 999999)
+        )
+        
         data.append({
-            'id': _ + 1,
+            'id': payment['id'],
             'charge_id': fake.unique.uuid4(),
-            'created_at': datetime.now().isoformat(),
-            'reservation_id': random.randint(1, num_reservations),
-            'payment_id': random.randint(1, num_payments),
+            'created_at': charge_date.isoformat(),
+            'reservation_id': payment['reservation_id'],
+            'payment_id': payment['id'],
             'amount': round(random.uniform(10.0, 50.0), 2),
-            'success': random.choice(['true', 'false']),
+            'success': random.choice(['SUCCESS', 'FAILURE']),
             'currency': 'USD',
-            'message': 'Transaction completed successfully.'
+            'message': 'test message'
         })
+    
     return data
 
 
@@ -253,7 +265,7 @@ if __name__ == "__main__":
     parking_spot_data = generate_parking_spot_data()
     reservation_data = generate_reservation_data(client_cars=client_car_data)
     payment_data = generate_payment_data(reservations=reservation_data)
-    stripe_charge_data = generate_stripe_charge_data()
+    stripe_charge_data = generate_stripe_charge_data(payments=payment_data)
 
     # Save to CSV
     save_to_csv('Parking.csv', parking_data, parking_data[0].keys())

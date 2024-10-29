@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from faker import Faker
 import string
 import copy
+import bcrypt
 
 fake = Faker()
 
@@ -55,7 +56,7 @@ def generate_parking_data(num_parking=NUM_PARKING):
             'zip_code': str(fake.zipcode()),
             'open_time': open_time,
             'close_time': close_time,
-            'cost_rate': round(random.uniform(1.5, 5.0), 2)
+            'cost_rate': round(random.uniform(1.0, 7.0), 2)
         })
     return data
 
@@ -63,6 +64,10 @@ def generate_parking_data(num_parking=NUM_PARKING):
 def generate_parking_user_data(num_users=NUM_USERS, num_parking=NUM_PARKING):
     data = []
     for _ in range(num_users):
+
+
+        hashed_password = bcrypt.hashpw(fake.password().encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
         data.append({
             'id': _ + 1,
             'email': fake.unique.email(),
@@ -70,7 +75,7 @@ def generate_parking_user_data(num_users=NUM_USERS, num_parking=NUM_PARKING):
                                                 maximum_age=80).isoformat(),
             'firstname': fake.first_name(),
             'lastname': fake.last_name(),
-            'password': fake.password(),
+            'password': hashed_password,
             'role': random.choice(['USER', 'PARKING_MANAGER', 'ADMIN']),
             'parking_id': random.randint(1, num_parking)
         })

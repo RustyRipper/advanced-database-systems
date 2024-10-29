@@ -66,7 +66,8 @@ def generate_parking_user_data(num_users=NUM_USERS, num_parking=NUM_PARKING):
     for _ in range(num_users):
 
 
-        hashed_password = bcrypt.hashpw(fake.password().encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hashed_password = fake.password()
+        #hashed_password = bcrypt.hashpw(hashed_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         data.append({
             'id': _ + 1,
@@ -197,7 +198,7 @@ def generate_reservation_data(num_reservations=NUM_RESERVATIONS, client_cars=Non
                 'user_id': user_id,
                 'start_date': start_date.isoformat(),
                 'end_date': end_date.isoformat(),
-                'amount': round(random.uniform(10.0, 50.0), 2),
+                'amount': round(random.uniform(1.0, 168.0), 2),
                 'active': random.choice(['Y', 'N']),
                 'registration_number': registration_number
             })
@@ -270,7 +271,7 @@ def generate_stripe_charge_data(payments=None):
             'reservation_id': payment['reservation_id'],
             'payment_id': payment['id'],
             'amount': round(random.uniform(10.0, 50.0), 2),
-            'success': random.choice(['SUCCESS', 'FAILURE']),
+            'success': random.choices(['SUCCESS', 'FAILURE'], weights=[98, 2])[0],
             'currency': 'USD',
             'message': 'test message'
         })

@@ -270,7 +270,7 @@ def generate_stripe_charge_data(payments=None):
             'created_at': charge_date.isoformat(),
             'reservation_id': payment['reservation_id'],
             'payment_id': payment['id'],
-            'amount': round(random.uniform(10.0, 50.0), 2),
+            'amount': round(random.uniform(1.0, 168.0), 2),
             'success': random.choices(['SUCCESS', 'FAILURE'], weights=[98, 2])[0],
             'currency': 'USD',
             'message': 'test message'

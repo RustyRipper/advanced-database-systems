@@ -76,7 +76,7 @@ def generate_parking_user_data(num_users=NUM_USERS, num_parking=NUM_PARKING):
             'firstname': fake.first_name(),
             'lastname': fake.last_name(),
             'password': hashed_password,
-            'role': random.choice(['USER', 'PARKING_MANAGER', 'ADMIN']),
+            'role': random.choices(['USER', 'PARKING_MANAGER', 'ADMIN'], weights=[99, 1, 1])[0],
             'parking_id': random.randint(1, num_parking)
         })
     return data

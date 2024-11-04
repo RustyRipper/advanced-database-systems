@@ -5,7 +5,7 @@ SELECT cc.brand                   AS car_brand,
                  JOIN Parking p ON ps.parking_id = p.id
                  JOIN ClientCar ccc
                       ON r.registration_number = ccc.registration_number
-                 JOIN User u ON r.user_id = u.id
+                 JOIN ParkingUser u ON r.user_id = u.id
         WHERE ccc.brand = cc.brand
           AND r.start_date >= TO_TIMESTAMP(:min_date, 'YYYY-MM-DD HH24:MI:SS') 
           AND u.role NOT IN ('PARKING_MANAGER', 'ADMIN')

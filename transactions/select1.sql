@@ -21,7 +21,7 @@ SELECT cc.brand                   AS car_brand,
                       ON r.registration_number = ccc.registration_number
         WHERE ccc.brand = cc.brand
           AND sc.success = 'SUCCESS'
-          AND sc.amount > 0
+          AND sc.amount > :min_amount
           AND r.start_date >= TO_TIMESTAMP(:min_date, 'YYYY-MM-DD HH24:MI:SS') 
           AND ps.active = 'Y'
           AND ccc.registration_number NOT LIKE 'WR%'

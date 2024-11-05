@@ -1,3 +1,5 @@
+SELECT car_brand, total_reservations, total_amount
+FROM (
 SELECT cc.brand                   AS car_brand,
        (SELECT COUNT(DISTINCT r.id)
         FROM Reservation r
@@ -10,7 +12,7 @@ SELECT cc.brand                   AS car_brand,
           AND r.start_date >= TO_TIMESTAMP(:min_date, 'YYYY-MM-DD HH24:MI:SS') 
           AND u.role NOT IN ('PARKING_MANAGER', 'ADMIN')
           AND ps.active = 'Y'
-          AND ccc.registration_number NOT LIKE 'WR%'
+          AND ccc.registration_number LIKE :registration_number_pattern
           AND p.id = :parking_id) AS total_reservations,
        (SELECT SUM(sc.amount)
         FROM StripeCharge sc
@@ -24,7 +26,9 @@ SELECT cc.brand                   AS car_brand,
           AND sc.amount > :min_amount
           AND r.start_date >= TO_TIMESTAMP(:min_date, 'YYYY-MM-DD HH24:MI:SS') 
           AND ps.active = 'Y'
-          AND ccc.registration_number NOT LIKE 'WR%'
+          AND ccc.registration_number LIKE :registration_number_pattern
           AND p.id = :parking_id) AS total_amount
 FROM ClientCar cc
-GROUP BY cc.brand;
+GROUP BY cc.brand
+) 
+WHERE total_reservations > 0;

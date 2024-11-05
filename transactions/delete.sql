@@ -1,8 +1,10 @@
 DELETE
 FROM Reservation r
 WHERE
-    r.end_date
-    > TO_TIMESTAMP(:discard_date, 'YYYY-MM-DD HH24:MI:SS') 
+    ( r.end_date
+    > TO_TIMESTAMP(:discard_date_min, 'YYYY-MM-DD HH24:MI:SS') ) AND
+    ( r.end_date
+    < TO_TIMESTAMP(:discard_date_max, 'YYYY-MM-DD HH24:MI:SS') )
    OR r.id IN (
     SELECT r2.id
     FROM

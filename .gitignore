@@ -6,3 +6,5 @@ ParkingUser.csv
 Payment.csv
 Reservation.csv
 StripeCharge.csv
+.idea
+transactions/.DS_Store

@@ -1,0 +1,61 @@
+Plan hash value: 2070048333
+ 
+--------------------------------------------------------------------------------------------------
+| Id  | Operation                         | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                  |              |     4 |   212 |  4319   (1)| 00:00:01 |
+|   1 |  SORT GROUP BY                    |              |     1 |    74 |            |          |
+|   2 |   NESTED LOOPS SEMI               |              |     3 |   222 |   648   (1)| 00:00:01 |
+|   3 |    NESTED LOOPS SEMI              |              |     3 |   180 |   645   (1)| 00:00:01 |
+|*  4 |     HASH JOIN                     |              |    54 |  2322 |   591   (1)| 00:00:01 |
+|*  5 |      TABLE ACCESS FULL            | PARKINGSPOT  |    50 |   450 |     9   (0)| 00:00:01 |
+|*  6 |      TABLE ACCESS FULL            | RESERVATION  |   750 | 25500 |   582   (1)| 00:00:01 |
+|*  7 |     TABLE ACCESS BY INDEX ROWID   | CLIENTCAR    |     2 |    34 |     1   (0)| 00:00:01 |
+|*  8 |      INDEX UNIQUE SCAN            | SYS_C007925  |     1 |       |     0   (0)| 00:00:01 |
+|*  9 |    TABLE ACCESS BY INDEX ROWID    | PARKINGUSER  |  8889 |   121K|     1   (0)| 00:00:01 |
+|* 10 |     INDEX UNIQUE SCAN             | SYS_C007918  |     1 |       |     0   (0)| 00:00:01 |
+|* 11 |  VIEW                             |              |     4 |   212 |  4319   (1)| 00:00:01 |
+|  12 |   HASH GROUP BY                   |              |     4 |   116 |  4319   (1)| 00:00:01 |
+|* 13 |    HASH JOIN RIGHT OUTER          |              | 50000 |  1416K|  1725   (1)| 00:00:01 |
+|  14 |     VIEW                          | VW_SSQ_1     |     4 |    84 |  1622   (1)| 00:00:01 |
+|  15 |      HASH GROUP BY                |              |     4 |   156 |  1622   (1)| 00:00:01 |
+|  16 |       NESTED LOOPS                |              |     4 |   156 |  1621   (1)| 00:00:01 |
+|  17 |        NESTED LOOPS               |              |     4 |   156 |  1621   (1)| 00:00:01 |
+|  18 |         VIEW                      | VW_GBC_19    |     4 |    88 |  1617   (1)| 00:00:01 |
+|  19 |          HASH GROUP BY            |              |     4 |   220 |  1617   (1)| 00:00:01 |
+|* 20 |           HASH JOIN               |              |    54 |  2970 |  1616   (1)| 00:00:01 |
+|* 21 |            HASH JOIN              |              |    54 |  2052 |   591   (1)| 00:00:01 |
+|* 22 |             TABLE ACCESS FULL     | PARKINGSPOT  |    50 |   450 |     9   (0)| 00:00:01 |
+|* 23 |             TABLE ACCESS FULL     | RESERVATION  |   750 | 21750 |   582   (1)| 00:00:01 |
+|* 24 |            TABLE ACCESS FULL      | STRIPECHARGE |  7250 |   120K|  1025   (1)| 00:00:01 |
+|* 25 |         INDEX UNIQUE SCAN         | SYS_C007925  |     1 |       |     0   (0)| 00:00:01 |
+|  26 |        TABLE ACCESS BY INDEX ROWID| CLIENTCAR    |     1 |    17 |     1   (0)| 00:00:01 |
+|  27 |     TABLE ACCESS FULL             | CLIENTCAR    | 50000 |   390K|   102   (0)| 00:00:01 |
+--------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - access("R"."PARKING_SPOT_ID"="PS"."ID")
+   5 - filter("PS"."PARKING_ID"=TO_NUMBER(:PARKING_ID) AND "PS"."ACTIVE"='Y')
+   6 - filter("R"."REGISTRATION_NUMBER" LIKE :REGISTRATION_NUMBER_PATTERN AND 
+              "R"."START_DATE">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD HH24:MI:SS'))
+   7 - filter("CCC"."BRAND"=:B1)
+   8 - access("R"."REGISTRATION_NUMBER"="CCC"."REGISTRATION_NUMBER")
+       filter("CCC"."REGISTRATION_NUMBER" LIKE :REGISTRATION_NUMBER_PATTERN)
+   9 - filter("U"."ROLE"<>'PARKING_MANAGER' AND "U"."ROLE"<>'ADMIN')
+  10 - access("R"."USER_ID"="U"."ID")
+  11 - filter("TOTAL_RESERVATIONS">0)
+  13 - access("ITEM_1"(+)="CC"."BRAND")
+  20 - access("SC"."RESERVATION_ID"="R"."ID")
+  21 - access("R"."PARKING_SPOT_ID"="PS"."ID")
+  22 - filter("PS"."PARKING_ID"=TO_NUMBER(:PARKING_ID) AND "PS"."ACTIVE"='Y')
+  23 - filter("R"."REGISTRATION_NUMBER" LIKE :REGISTRATION_NUMBER_PATTERN AND 
+              "R"."START_DATE">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD HH24:MI:SS'))
+  24 - filter("SC"."SUCCESS"='SUCCESS' AND "SC"."AMOUNT">TO_NUMBER(:MIN_AMOUNT))
+  25 - access("ITEM_1"="CCC"."REGISTRATION_NUMBER")
+       filter("CCC"."REGISTRATION_NUMBER" LIKE :REGISTRATION_NUMBER_PATTERN)
+ 
+Note
+-----
+   - this is an adaptive plan

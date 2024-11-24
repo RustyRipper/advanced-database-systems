@@ -5,7 +5,6 @@ from faker import Faker
 from faker_vehicle import VehicleProvider
 import string
 import copy
-import bcrypt
 
 fake = Faker()
 fake.add_provider(VehicleProvider)

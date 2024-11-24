@@ -5,9 +5,9 @@ from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = 'oracle+oracledb://system:welcome123@localhost:1521/XE'
 ddl_file_path = '../db.ddl'
-db_remove_file_path = '../remove_db.ddl'
+db_remove_file_path = 'remove_db.ddl'
 
-connection = oracledb.connect(user="new_user", password="Spiderman1",
+connection = oracledb.connect(user="system", password="welcome123",
                               dsn="localhost:1521/XE")
 cursor = connection.cursor()
 
@@ -79,6 +79,7 @@ if __name__ == "__main__":
         try:
             execute_ddl(db_remove_file_path)
         except Exception as e:
+            print(e)
             print("Can't")
 
         execute_ddl(ddl_file_path)

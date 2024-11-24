@@ -10,14 +10,14 @@ INSERT INTO Reservation
  registration_number)
 SELECT r.parking_spot_id,
        r.user_id,
-       TO_TIMESTAMP(:new_start_date, 'YYYY-MM-DD HH24:MI:SS')         AS start_date,
+       TO_TIMESTAMP(:new_start_date, 'YYYY-MM-DD HH24:MI:SS') AS start_date,
        TO_TIMESTAMP(:new_end_date,
-                    'YYYY-MM-DD HH24:MI:SS')                          AS end_date,
+                    'YYYY-MM-DD HH24:MI:SS')                  AS end_date,
        p.cost_rate *
-       Extract(hour FROM (TO_TIMESTAMP(:new_end_date, 'YYYY-MM-DD HH24:MI:SS') -
-                          TO_TIMESTAMP(:new_start_date,
-                                       'YYYY-MM-DD HH24:MI:SS'))) + 1 AS amount,
-       'Y'                                                            AS active,
+       (24 * (TO_TIMESTAMP(:new_end_date, 'YYYY-MM-DD HH24:MI:SS') -
+              TO_TIMESTAMP(:new_start_date,
+                           'YYYY-MM-DD HH24:MI:SS'))) + 1     AS amount,
+       'Y'                                                    AS active,
        r.registration_number
 FROM Reservation r
          JOIN Parkingspot ps ON r.parking_spot_id = ps.id

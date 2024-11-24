@@ -1,7 +1,7 @@
-SELECT u.id || ' ' || u.firstname || ' ' || u.lastname             AS parking_user,
-       ps.id                                                       AS parking_spot_id,
-       COUNT(r.id)                                                 AS total_reservations,
-       SUM(r.amount)                                               AS total_amount,
+SELECT u.id || ' ' || u.firstname || ' ' || u.lastname AS parking_user,
+       ps.id                                           AS parking_spot_id,
+       COUNT(r.id)                                     AS total_reservations,
+       SUM(r.amount)                                   AS total_amount,
        (SELECT COUNT(*)
         FROM Reservation r2
                  Join PARKINGUSER u2 ON r2.user_id = u2.id
@@ -10,7 +10,7 @@ SELECT u.id || ' ' || u.firstname || ' ' || u.lastname             AS parking_us
         WHERE r2.USER_ID = u.id
           AND pk2.id = :parking_id
           AND ps2.id = ps.id
-          AND r2.end_date < CURRENT_TIMESTAMP) AS past_reservations
+          AND r2.end_date < CURRENT_TIMESTAMP)         AS past_reservations
 
 FROM Reservation r
          JOIN ParkingUser u ON r.user_id = u.id
@@ -21,4 +21,4 @@ WHERE pk.id = :parking_id
     AND TO_TIMESTAMP(:end_date, 'YYYY-MM-DD HH24:MI:SS')
 GROUP BY u.id, u.firstname, u.lastname, ps.ID
 HAVING SUM(r.amount) > 0
-ORDER BY total_reservations DESC;
+ORDER BY total_reservations DESC

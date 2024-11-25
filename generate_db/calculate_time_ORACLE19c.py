@@ -32,13 +32,16 @@ def reset_database():
     pass
 
 def run_load_test(connection, iterations=10):
-    sql_script = load_sql_script("select3.sql")
+    sql_script = load_sql_script("../transactions/update.sql")
     params = {
-        "PARKING_ID": 10,
-        "START_DATE": "2020-12-12 12:12:12",
-        "END_DATE": "2023-12-12 12:12:12"
-    }  # Example parameters
-
+        "p_min_age": 18,
+        "p_color_toyota": "Red",
+        "p_color_bmw": "Black",
+        "p_color_honda": "Green",
+        "p_days_since_reservation": 30,
+        "p_color_admin": "Gold",
+        "p_color_default": "White"
+    }
     execution_times = []
     for i in range(iterations):
         # Ensure database state is consistent by re-running the SQL script

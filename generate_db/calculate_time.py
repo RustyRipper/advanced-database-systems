@@ -5,8 +5,8 @@ import subprocess
 
 
 def reset_database():
-    result = subprocess.run(['python', '../generate_db/insert_to_db.py'],
-                            capture_output=True, text=True)
+    result = subprocess.run(['python', 'insert_to_db.py'],
+                            capture_output=True, text=True, check=True)
 
     if result.returncode != 0:
         print(
@@ -21,7 +21,7 @@ def load_sql_script(file_path):
         return file.read()
 
 
-def execute_transaction(sql_script, params=()):
+def execute_transaction(sql_script, params=(), is_select=True):
     connection = oracledb.connect(
         user="system",
         password="welcome123",
@@ -32,10 +32,12 @@ def execute_transaction(sql_script, params=()):
     start_time = time.time()
 
     cursor.execute(sql_script, params)
-    results = cursor.fetchall()
-    for row in results:
-        _ = row[0]
-
+    if is_select:
+        results = cursor.fetchall()
+        for row in results:
+            _ = row[0]
+    else:
+        connection.commit()
     end_time = time.time()
     cursor.close()
     connection.close()
@@ -44,22 +46,26 @@ def execute_transaction(sql_script, params=()):
 
 
 def run_load_test(iterations=10):
-    sql_script = load_sql_script("select3.sql")
-    params = {"PARKING_ID": 10,
-              "START_DATE": "2020-12-12 12:12:12",
-              "END_DATE": "2023-12-12 12:12:12"}  # Example parameters
+    sql_script_select3 = load_sql_script("../transactions/select3.sql")
+    params_select3 = {"PARKING_ID": 10,
+                      "START_DATE": "2020-12-12 12:12:12",
+                      "END_DATE": "2023-12-12 12:12:12"}
+    sql_script_insert = load_sql_script("../transactions/insert_alone.sql")
+    params_insert = {"PARKING_ID": 10,
+                     "USER_ID": 10,
+                     "new_end_date": "2022-12-12 18:12:12",
+                     "new_start_date": "2022-12-12 06:12:12",
+                     "reference_date": "2020-11-27"}
 
     execution_times = []
     for i in range(iterations):
-        # Ensure database state is consistent by re-running the SQL script
         reset_database()
 
-        # Run the transaction and measure time
-        execution_time = execute_transaction(sql_script, params)
+        execution_time = execute_transaction(sql_script_select3, params_select3,
+                                             True)
         execution_times.append(execution_time)
         print(f"Iteration {i + 1}: {execution_time:.4f} seconds")
 
-    # Save results to a file
     results_df = pd.DataFrame({
         "Run": list(range(1, iterations + 1)),
         "Execution Time (s)": execution_times

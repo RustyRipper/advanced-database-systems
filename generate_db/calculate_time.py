@@ -71,6 +71,25 @@ def run_load_test(iterations=10):
     params_select1_deoptimized = params_select1
     sql_script = load_sql_script("delete_deoptimized.sql")
     params_delete_deoptimized = params_delete
+    
+    ##### SELECT 2 #####
+    sql_script_select2 = load_sql_script("../transactions/select2.sql")
+    params_select2 = {
+        "start_date": "2024-12-11 12:12:12",
+        "end_date": "2024-12-12 12:12:12"
+    }
+    
+    ##### Update #####
+    sql_script_update= load_sql_script("../transactions/update.sql")
+    params_update = {
+        "p_min_age": 18,
+        "p_color_toyota": "Red",
+        "p_color_bmw": "Black",
+        "p_color_honda": "Green",
+        "p_days_since_reservation": 30,
+        "p_color_admin": "Gold",
+        "p_color_default": "White"
+    }
 
     execution_times = []
     for i in range(iterations):

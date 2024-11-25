@@ -56,6 +56,21 @@ def run_load_test(iterations=10):
                      "new_end_date": "2022-12-12 18:12:12",
                      "new_start_date": "2022-12-12 06:12:12",
                      "reference_date": "2020-11-27"}
+    sql_script_select1 = load_sql_script("../transactions/select1.sql")
+    params_select1 = {"min_amount": 0,
+              "registration_number_pattern": "%",
+              "parking_id": 1,
+              "min_date" : "2020-12-12 12:12:12"
+              }
+    sql_script_delete = load_sql_script("../transactions/delete.sql")
+    params_delete = {
+              "discard_date_min" : "2021-12-1 12:12:12",
+              "discard_date_max" : "2021-12-5 12:12:12"
+              }
+    sql_script_select1_deoptimized = load_sql_script("../transactions/select1_deoptimized.sql")
+    params_select1_deoptimized = params_select1
+    sql_script = load_sql_script("delete_deoptimized.sql")
+    params_delete_deoptimized = params_delete
 
     execution_times = []
     for i in range(iterations):

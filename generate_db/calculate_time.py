@@ -5,6 +5,23 @@ import subprocess
 
 
 def reset_database():
+    # Clear Oracle cache
+    connection = oracledb.connect(
+        user="system",
+        password="welcome123",
+        dsn="localhost:1521/XE"
+    )
+    cursor = connection.cursor()
+
+    # Clear shared pool and buffer cache
+    print("Clearing Oracle cache...")
+    cursor.execute("ALTER SYSTEM FLUSH SHARED_POOL")
+    cursor.execute("ALTER SYSTEM FLUSH BUFFER_CACHE")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    print("Cache cleared successfully.")
+
     result = subprocess.run(['python', 'insert_to_db.py'],
                             capture_output=True, text=True, check=True)
 

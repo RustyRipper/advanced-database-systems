@@ -50,7 +50,7 @@ def run_load_test(iterations=10):
     params_select3 = {"PARKING_ID": 10,
                       "START_DATE": "2020-12-12 12:12:12",
                       "END_DATE": "2023-12-12 12:12:12"}
-    sql_script_insert = load_sql_script("../transactions/insert_alone.sql")
+    sql_script_insert = load_sql_script("../transactions/insert_optimized.sql")
     params_insert = {"PARKING_ID": 10,
                      "USER_ID": 10,
                      "new_end_date": "2022-12-12 18:12:12",
@@ -69,7 +69,7 @@ def run_load_test(iterations=10):
               }
     sql_script_select1_deoptimized = load_sql_script("../transactions/select1_deoptimized.sql")
     params_select1_deoptimized = params_select1
-    sql_script = load_sql_script("delete_deoptimized.sql")
+    sql_script = load_sql_script("../transactions/delete_deoptimized.sql")
     params_delete_deoptimized = params_delete
     
     ##### SELECT 2 #####
@@ -95,7 +95,7 @@ def run_load_test(iterations=10):
     for i in range(iterations):
         reset_database()
 
-        execution_time = execute_transaction(sql_script_select3, params_select3,
+        execution_time = execute_transaction(sql_script_select2, params_select2,
                                              True)
         execution_times.append(execution_time)
         print(f"Iteration {i + 1}: {execution_time:.4f} seconds")
@@ -117,4 +117,4 @@ def run_load_test(iterations=10):
 
 
 if __name__ == "__main__":
-    run_load_test(iterations=10)
+    run_load_test(iterations=5)

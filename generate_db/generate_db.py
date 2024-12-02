@@ -2,11 +2,12 @@ import csv
 import random
 from datetime import datetime, timedelta
 from faker import Faker
+from faker_vehicle import VehicleProvider
 import string
 import copy
-import bcrypt
 
 fake = Faker()
+fake.add_provider(VehicleProvider)
 
 NUM_PARKING = 100
 NUM_USERS = 20000
@@ -93,7 +94,7 @@ def generate_client_car_data(num_cars=NUM_CARS, num_users=NUM_USERS):
             'client_id': random.randint(1, num_users),
             'active': random.choice(['Y', 'N']),
             'registration_number': fake.unique.license_plate(),
-            'brand': fake.company(),
+            'brand': fake.vehicle_make(),
             'color': fake.color_name()
         })
     return data

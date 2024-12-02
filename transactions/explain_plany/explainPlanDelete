@@ -1,0 +1,30 @@
+Plan hash value: 2446440179
+ 
+----------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------------
+|   0 | DELETE STATEMENT              |              |     1 |    27 |   384K  (1)| 00:00:16 |
+|   1 |  DELETE                       | RESERVATION  |       |       |            |          |
+|*  2 |   FILTER                      |              |       |       |            |          |
+|*  3 |    FILTER                     |              |       |       |            |          |
+|*  4 |     TABLE ACCESS FULL         | RESERVATION  |   750 | 20250 |   582   (1)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL          | STRIPECHARGE |     1 |    13 |  1025   (1)| 00:00:01 |
+|*  6 |    TABLE ACCESS BY INDEX ROWID| PARKINGSPOT  |     1 |     6 |     2   (0)| 00:00:01 |
+|*  7 |     INDEX UNIQUE SCAN         | SYS_C007911  |     1 |       |     1   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter( EXISTS (SELECT 0 FROM "STRIPECHARGE" "SC" WHERE 
+              "SC"."RESERVATION_ID"=:B1 AND "SC"."SUCCESS"='FAILURE' AND "SC"."RESERVATION_ID" IS 
+              NOT NULL) OR  EXISTS (SELECT 0 FROM "PARKINGSPOT" "PS" WHERE "PS"."ID"=:B2 AND 
+              "PS"."ACTIVE"='N'))
+   3 - filter(TO_TIMESTAMP(:DISCARD_DATE_MAX,'YYYY-MM-DD 
+              HH24:MI:SS')>TO_TIMESTAMP(:DISCARD_DATE_MIN,'YYYY-MM-DD HH24:MI:SS'))
+   4 - filter("R"."END_DATE">TO_TIMESTAMP(:DISCARD_DATE_MIN,'YYYY-MM-DD HH24:MI:SS') 
+              AND "R"."END_DATE"<TO_TIMESTAMP(:DISCARD_DATE_MAX,'YYYY-MM-DD HH24:MI:SS'))
+   5 - filter("SC"."RESERVATION_ID"=:B1 AND "SC"."SUCCESS"='FAILURE' AND 
+              "SC"."RESERVATION_ID" IS NOT NULL)
+   6 - filter("PS"."ACTIVE"='N')
+   7 - access("PS"."ID"=:B1)

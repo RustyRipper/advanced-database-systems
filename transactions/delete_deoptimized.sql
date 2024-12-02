@@ -12,6 +12,17 @@ WHERE
     JOIN StripeCharge sc ON r2.id = sc.reservation_id
     WHERE
     sc.success = 'FAILURE'
+    AND sc.amount IN (
+        SELECT amount
+        FROM (
+            SELECT amount
+            FROM StripeCharge
+            ORDER BY amount ASC
+            FETCH FIRST 100 ROWS ONLY
+        )
+    )
+
+
     )
    OR r.parking_spot_id IN (
     SELECT ps.id

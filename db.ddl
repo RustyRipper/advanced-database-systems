@@ -16,7 +16,7 @@ CREATE TABLE ParkingSpot
     parking_id  NUMBER NOT NULL,
     active      CHAR(1) CHECK (active IN ('Y', 'N')),
     spot_number VARCHAR2(50),
-    CONSTRAINT fk_parking FOREIGN KEY (parking_id) REFERENCES Parking (id),
+    CONSTRAINT fk_parking FOREIGN KEY (parking_id) REFERENCES Parking (id) ON DELETE CASCADE,
     CONSTRAINT unique_spot_per_parking UNIQUE (parking_id, spot_number)
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE ParkingUser
     password             VARCHAR2(255)        NOT NULL,
     role                 VARCHAR2(20) CHECK (Role IN ('USER', 'PARKING_MANAGER', 'ADMIN')),
     parking_id           NUMBER,
-    CONSTRAINT fk_parking_user FOREIGN KEY (parking_id) REFERENCES Parking (id)
+    CONSTRAINT fk_parking_user FOREIGN KEY (parking_id) REFERENCES Parking (id) ON DELETE CASCADE
 );
 
 CREATE TABLE ClientCar
@@ -42,7 +42,7 @@ CREATE TABLE ClientCar
     registration_number VARCHAR2(50) UNIQUE,
     brand               VARCHAR2(50),
     color               VARCHAR2(50),
-    CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES ParkingUser (id)
+    CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES ParkingUser (id) ON DELETE CASCADE
 );
 
 CREATE TABLE Reservation
@@ -55,11 +55,9 @@ CREATE TABLE Reservation
     amount              NUMBER(10, 2),
     active              CHAR(1) CHECK (active IN ('Y', 'N')),
     registration_number VARCHAR2(50),
-    CONSTRAINT fk_parking_spot FOREIGN KEY (parking_spot_id) REFERENCES ParkingSpot (id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES ParkingUser (id)
+    CONSTRAINT fk_parking_spot FOREIGN KEY (parking_spot_id) REFERENCES ParkingSpot (id) ON DELETE CASCADE,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES ParkingUser (id) ON DELETE CASCADE
 );
-
-
 
 CREATE TABLE Payment
 (
@@ -71,9 +69,8 @@ CREATE TABLE Payment
     exp_month      VARCHAR2(2),
     exp_year       VARCHAR2(4),
     token          VARCHAR2(255) UNIQUE,
-    CONSTRAINT fk_reservation FOREIGN KEY (reservation_id) REFERENCES Reservation (id)
+    CONSTRAINT fk_reservation FOREIGN KEY (reservation_id) REFERENCES Reservation (id) ON DELETE CASCADE
 );
-
 
 CREATE TABLE StripeCharge
 (
@@ -86,7 +83,6 @@ CREATE TABLE StripeCharge
     success        VARCHAR2(10),
     currency       VARCHAR2(10),
     message        VARCHAR2(255),
-    CONSTRAINT fk_reservation_stripe FOREIGN KEY (reservation_id) REFERENCES
-        Reservation (id),
-    CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES Payment (id)
+    CONSTRAINT fk_reservation_stripe FOREIGN KEY (reservation_id) REFERENCES Reservation (id) ON DELETE CASCADE,
+    CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES Payment (id) ON DELETE CASCADE
 );

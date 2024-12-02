@@ -172,8 +172,8 @@ if __name__ == "__main__":
             "script": load_sql_script("./transactions/select3.sql"),
             "params": {
                 "PARKING_ID": 10,
-                "START_DATE": "2020-12-12 12:12:12",
-                "END_DATE": "2023-12-12 12:12:12"
+                "START_DATE": "2020-5-6 12:12:12",
+                "END_DATE": "2023-5-1 12:12:12"
             }
         },
         "insert_alone": {

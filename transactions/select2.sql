@@ -30,4 +30,4 @@ FROM ClientCar cc
      Parking p ON ps.parking_id = p.id
 WHERE r.start_date BETWEEN :start_date AND :end_date
 GROUP BY cc.brand, cc.color, r.user_id, r.parking_spot_id
-ORDER BY total_parking_count DESC;
+ORDER BY total_parking_count DESC

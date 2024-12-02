@@ -144,7 +144,7 @@ def run_load_test(test_queries, iterations=10):
 if __name__ == "__main__":
     test_queries = {
         "select1": {
-            "script": load_sql_script("../transactions/select1.sql"),
+            "script": load_sql_script("./transactions/select1.sql"),
             "params": {
                 "min_amount": 0,
                 "registration_number_pattern": "%",
@@ -153,7 +153,7 @@ if __name__ == "__main__":
             }
         },
         "select1_deoptimized": {
-            "script": load_sql_script("../transactions/select1_deoptimized.sql"),
+            "script": load_sql_script("./transactions/select1_deoptimized.sql"),
             "params": {
                 "min_amount": 0,
                 "registration_number_pattern": "%",
@@ -161,15 +161,15 @@ if __name__ == "__main__":
                 "min_date": "2020-12-12 12:12:12"
             }
         },
-        "select2": {
-            "script": load_sql_script("../transactions/select2.sql"),
-            "params": {
-                "start_date": "2024-12-11 12:12:12",
-                "end_date": "2024-12-12 12:12:12"
-            }
-        },
+        # "select2": {
+        #     "script": load_sql_script("./transactions/select2.sql"),
+        #     "params": {
+        #         "start_date": "2024-12-11 12:12:12",
+        #         "end_date": "2024-12-12 12:12:12"
+        #     }
+        # },
         "select3": {
-            "script": load_sql_script("../transactions/select3.sql"),
+            "script": load_sql_script("./transactions/select3.sql"),
             "params": {
                 "PARKING_ID": 10,
                 "START_DATE": "2020-12-12 12:12:12",
@@ -177,7 +177,7 @@ if __name__ == "__main__":
             }
         },
         "insert_alone": {
-            "script": load_sql_script("../transactions/insert_alone.sql"),
+            "script": load_sql_script("./transactions/insert_alone.sql"),
             "params": {
                 "PARKING_ID": 10,
                 "USER_ID": 10,
@@ -187,21 +187,21 @@ if __name__ == "__main__":
             }
         },
         "delete": {
-            "script": load_sql_script("../transactions/delete.sql"),
+            "script": load_sql_script("./transactions/delete.sql"),
             "params": {
                 "discard_date_min": "2021-12-1 12:12:12",
                 "discard_date_max": "2021-12-5 12:12:12"
             }
         },
         "delete_deoptimized": {
-            "script": load_sql_script("../transactions/delete_deoptimized.sql"),
+            "script": load_sql_script("./transactions/delete_deoptimized.sql"),
             "params": {
                 "discard_date_min": "2021-12-1 12:12:12",
                 "discard_date_max": "2021-12-5 12:12:12"
             }
         },
         "update": {
-            "script": load_sql_script("../transactions/update.sql"),
+            "script": load_sql_script("./transactions/update.sql"),
             "params": {
                 "p_min_age": 18,
                 "p_color_toyota": "Red",

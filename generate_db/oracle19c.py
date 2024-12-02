@@ -72,12 +72,14 @@ def insert_data_from_csv(table_name, csv_file, encoding='utf-8'):
                 placeholders.append(f":{i + 1}")
 
         sql = f"INSERT INTO {table_name.upper()} ({columns}) VALUES ({', '.join(placeholders)})"
-
+        print(f"Inserting data into {table_name} table.")
         # Convert relevant columns to the appropriate datetime format
         for col in timestamp_columns:
             if col in data.columns:
                 data[col] = pd.to_datetime(data[col], errors='coerce').dt.strftime('%Y-%m-%d %H:%M:%S')
 
+        # for col in data.select_dtypes(include=['float']).columns:
+        #     data[col] = data[col].astype(str)
         print(sql)
         rows = [tuple(row) for row in data.to_numpy()]
 

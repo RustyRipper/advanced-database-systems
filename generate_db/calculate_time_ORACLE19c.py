@@ -11,7 +11,7 @@ DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DSN = "localhost:1521/ORCLPDB1"
 
-ddl_file_path = './db.ddl'
+ddl_file_path = '../db.ddl'
 db_remove_file_path = './remove_db.ddl'
 
 connection = oracledb.connect(
@@ -94,15 +94,19 @@ def reset_database():
         cursor = connection.cursor()
         # Flush shared pool and buffer cache
         
-        execute_ddl(db_remove_file_path)
-        execute_ddl(ddl_file_path)
-        insert_data_from_csv("Parking", 'Parking.csv')
-        insert_data_from_csv("ParkingUser", 'ParkingUser.csv')
-        insert_data_from_csv("ClientCar", 'ClientCar.csv')
-        insert_data_from_csv("ParkingSpot", 'ParkingSpot.csv')
-        insert_data_from_csv("Reservation", 'Reservation.csv')
-        insert_data_from_csv("Payment", 'Payment.csv')
-        insert_data_from_csv("StripeCharge", 'StripeCharge.csv')
+        # try:
+        #     execute_ddl(db_remove_file_path)
+        # except Exception as e:
+        #     print(e)
+        #     print("Can't")
+        # execute_ddl(ddl_file_path)
+        # insert_data_from_csv("Parking", '../Parking.csv')
+        # insert_data_from_csv("ParkingUser", '../ParkingUser.csv')
+        # insert_data_from_csv("ClientCar", '../ClientCar.csv')
+        # insert_data_from_csv("ParkingSpot", '../ParkingSpot.csv')
+        # insert_data_from_csv("Reservation", '../Reservation.csv')
+        # insert_data_from_csv("Payment", '../Payment.csv')
+        # insert_data_from_csv("StripeCharge", '../StripeCharge.csv')
 
         cursor.execute("ALTER SYSTEM FLUSH SHARED_POOL")
         cursor.execute("ALTER SYSTEM FLUSH BUFFER_CACHE")
@@ -119,7 +123,7 @@ def run_load_test(test_queries, iterations=10):
     for i in range(iterations):
         for query_name, query_data in test_queries.items():
             reset_database()
-            execution_time = execute_transaction(connection, query_data["script"], query_data["params"])
+            execution_time = execute_transaction(query_data["script"], query_data["params"])
             execution_times.append((query_name, i + 1, execution_time))
             print(f"{query_name} - Iteration {i + 1}: {execution_time:.4f} seconds")
 

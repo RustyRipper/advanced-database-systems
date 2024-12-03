@@ -24,29 +24,40 @@ cursor = connection.cursor()
 cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'")
 cursor.close()
 
-def create_btree_index(connection):
+def create_indexes(connection):
     cursor = connection.cursor()
-    cursor.execute("CREATE INDEX idx_reservation_parking_spot_id ON Reservation(parking_spot_id)")
+    cursor.execute("CREATE INDEX idx_clientcar_registration_number ON ClientCar(registration_number)")
+    cursor.execute("CREATE INDEX idx_reservation_registration_number ON Reservation(registration_number)")
+    # cursor.execute("CREATE INDEX idx_reservation_user_id ON Reservation(user_id)")
+    cursor.execute("CREATE BITMAP INDEX idx_clientcar_brand ON ClientCar(brand)")
+    # cursor.execute("CREATE INDEX idx_reservation_parking_spot_id ON Reservation(parking_spot_id)")
+    # cursor.execute("CREATE INDEX idx_reservation_dates ON Reservation(start_date, end_date)")
     connection.commit()
     cursor.close()
+    print("Indexes created successfully.")
 
-def create_bitmap_index(connection):
+def drop_indexes(connection):
     cursor = connection.cursor()
-    cursor.execute("CREATE BITMAP INDEX idx_parkingspot_active ON ParkingSpot(active)")
-    connection.commit()
+    try:
+        cursor.execute("DROP INDEX idx_clientcar_registration_number")
+        cursor.execute("DROP INDEX idx_reservation_registration_number")
+        # cursor.execute("DROP INDEX idx_reservation_user_id")
+        cursor.execute("DROP INDEX idx_clientcar_brand")
+        # cursor.execute("DROP INDEX idx_reservation_parking_spot_id")
+        # cursor.execute("DROP INDEX idx_reservation_dates")
+        connection.commit()
+    except:
+        pass
     cursor.close()
+    print("Indexes dropped successfully.")
 
-def create_functional_index(connection):
+def flush_buffers(connection):
     cursor = connection.cursor()
-    cursor.execute("CREATE INDEX idx_clientcar_lower_brand ON ClientCar(LOWER(brand))")
+    cursor.execute("ALTER SYSTEM FLUSH SHARED_POOL")
+    cursor.execute("ALTER SYSTEM FLUSH BUFFER_CACHE")
     connection.commit()
     cursor.close()
-
-def drop_index(connection, index_name):
-    cursor = connection.cursor()
-    cursor.execute(f"DROP INDEX {index_name}")
-    connection.commit()
-    cursor.close()
+    print("Database buffers flushed and cleared successfully.")
 
 def load_sql_script(filename):
     with open(filename, 'r') as file:
@@ -61,14 +72,6 @@ def measure_query_time(connection, query, params):
     cursor.close()
     return end_time - start_time
 
-def flush_buffers(connection):
-    cursor = connection.cursor()
-    cursor.execute("ALTER SYSTEM FLUSH SHARED_POOL")
-    cursor.execute("ALTER SYSTEM FLUSH BUFFER_CACHE")
-    connection.commit()
-    cursor.close()
-    print("Database buffers flushed and cleared successfully.")
-
 def run_index_experiments(connection, queries, iterations=10, index_type="No Index"):
     results = []
 
@@ -82,63 +85,33 @@ def run_index_experiments(connection, queries, iterations=10, index_type="No Ind
     return results
 
 if __name__ == "__main__":
+    
     test_queries = {
-        # "select1": {
-        #     "script": load_sql_script("./transactions/select1.sql"),
-        #     "params": {
-        #         "min_amount": 0,
-        #         "registration_number_pattern": "%",
-        #         "parking_id": 1,
-        #         "min_date": "2020-12-12 12:12:12"
-        #     }
-        # },
         "select2": {
             "script": load_sql_script("./transactions/select2.sql"),
             "params": {
-                "start_date": "2020-05-01 08:06:00",
+                "start_date": "2020-05-11 08:06:00",
                 "end_date": "2020-05-12 09:12:00"
             }
-        },
-        # "select3": {
-        #     "script": load_sql_script("./transactions/select3.sql"),
-        #     "params": {
-        #         "PARKING_ID": 10,
-        #         "START_DATE": "2020-05-06 12:12:12",
-        #         "END_DATE": "2023-05-01 12:12:12"
-        #     }
-        # }
+        }
     }
+    drop_indexes(connection)
 
     # Run experiments without indexes
     print("Running experiments without indexes...")
     results_no_index = run_index_experiments(connection, test_queries, index_type="No Index")
 
-    # Create B-tree index and run experiments
-    print("Creating B-tree index...")
-    create_btree_index(connection)
-    print("Running experiments with B-tree index...")
-    results_btree_index = run_index_experiments(connection, test_queries, index_type="B-tree Index")
-    print("Dropping B-tree index...")
-    drop_index(connection, "idx_reservation_parking_spot_id")
+    # Create indexes and run experiments
+    print("Creating indexes...")
 
-    # Create Bitmap index and run experiments
-    print("Creating Bitmap index...")
-    create_bitmap_index(connection)
-    print("Running experiments with Bitmap index...")
-    results_bitmap_index = run_index_experiments(connection, test_queries, index_type="Bitmap Index")
-    print("Dropping Bitmap index...")
-    drop_index(connection, "idx_parkingspot_active")
-
-    # Create Functional index and run experiments
-    print("Creating Functional index...")
-    create_functional_index(connection)
-    print("Running experiments with Functional index...")
-    results_functional_index = run_index_experiments(connection, test_queries, index_type="Functional Index")
-    print("Dropping Functional index...")
-    drop_index(connection, "idx_clientcar_lower_brand")
+    create_indexes(connection)
+    print("Running experiments with indexes...")
+    results_with_index = run_index_experiments(connection, test_queries, index_type="With Index")
+    print("Dropping indexes...")
+    drop_indexes(connection)
 
     # Combine results
-    results = results_no_index + results_btree_index + results_bitmap_index + results_functional_index
+    results = results_no_index + results_with_index
 
     # Save results to a file
     results_df = pd.DataFrame(results, columns=["Query", "Run", "Execution Time (s)", "Index Type"])

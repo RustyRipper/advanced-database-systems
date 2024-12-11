@@ -9,3 +9,5 @@ StripeCharge.csv
 .idea
 transactions/.DS_Store
 transactions/.env
+/.venv
+.env

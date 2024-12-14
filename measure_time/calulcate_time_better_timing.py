@@ -66,6 +66,7 @@ def remove_indexes():
 
 def run_load_test(test_queries, iterations=10):
     execution_times = []
+    remove_indexes()
     load_indexes()
     for i in range(iterations):
         reset_database()

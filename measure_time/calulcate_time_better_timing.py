@@ -1,7 +1,8 @@
-import os
 import time
-import pandas as pd
+from datetime import datetime
+
 import oracledb
+import pandas as pd
 
 ddl_file_path = './db.ddl'
 db_remove_file_path = './remove_db.ddl'
@@ -12,12 +13,16 @@ connection = oracledb.connect(
     dsn="localhost:1521/XE"
 )
 
+
 def load_sql_script(filename):
     with open(filename, 'r') as file:
         return file.read()
 
+
 def execute_transaction(sql_script, params):
     cursor = connection.cursor()
+    cursor.execute(
+        "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'")
     start_time = time.time()
 
     cursor.execute(sql_script, params)
@@ -28,58 +33,6 @@ def execute_transaction(sql_script, params):
 
     return end_time - start_time
 
-def insert_data_from_csv(table_name, csv_file, encoding='utf-8'):
-    try:
-        cursor = connection.cursor()
-        data = pd.read_csv(csv_file, encoding=encoding)
-        if 'ID' in data.columns:
-            data.drop(columns=['ID'], inplace=True)
-
-        timestamp_columns = ['OPEN_TIME', 'CLOSE_TIME', 'START_DATE',
-                             'END_DATE', 'CREATED_AT', 'ADDITION_TIME']
-        date_columns = ['DATE_OF_BIRTH', 'ADDITION_TIME']
-
-        columns = ', '.join(data.columns)
-        placeholders = []
-
-        for i, col in enumerate(data.columns):
-            if col in timestamp_columns:
-                placeholders.append(
-                    f"TO_TIMESTAMP(:{i + 1}, 'YYYY-MM-DD HH24:MI:SS')")
-            elif col in date_columns:
-                placeholders.append(f"TO_DATE(:{i + 1}, 'YYYY-MM-DD')")
-            else:
-                placeholders.append(f":{i + 1}")
-
-        sql = f"INSERT INTO {table_name.upper()} ({columns}) VALUES ({', '.join(placeholders)})"
-
-        # Convert relevant columns to the appropriate datetime format
-        for col in timestamp_columns:
-            if col in data.columns:
-                data[col] = pd.to_datetime(data[col],
-                                           errors='coerce').dt.strftime(
-                    '%Y-%m-%d %H:%M:%S')
-
-        print(sql)
-        rows = [tuple(row) for row in data.to_numpy()]
-        cursor.executemany(sql, rows)
-        connection.commit()
-        print(f"Data from {csv_file} inserted successfully into {table_name}.")
-    except UnicodeDecodeError as e:
-        print(f"Encoding error: {e}. Trying with a different encoding.")
-        insert_data_from_csv(table_name, csv_file, encoding='ISO-8859-1')
-
-def execute_ddl(file_path):
-    cursor = connection.cursor()
-    with open(file_path, 'r') as ddl_file:
-        ddl_statements = ddl_file.read().split(';')
-        for statement in ddl_statements:
-            if statement.strip():
-                print(f"Executing: {statement.strip()}")
-                cursor.execute(statement)
-    connection.commit()
-    print(f"Executed DDL statements from {file_path} successfully.")
-    cursor.close()
 
 def reset_database():
     try:
@@ -94,28 +47,53 @@ def reset_database():
     finally:
         cursor.close()
 
+
+def load_indexes():
+    cursor = connection.cursor()
+    cursor.execute(load_sql_script("./transactions/index1_select3.sql"))
+    cursor.execute(load_sql_script("./transactions/index2_select3.sql"))
+    connection.commit()
+    cursor.close()
+
+
+def remove_indexes():
+    cursor = connection.cursor()
+    cursor.execute(load_sql_script("./transactions/index1_select3_remove.sql"))
+    cursor.execute(load_sql_script("./transactions/index2_select3_remove.sql"))
+    connection.commit()
+    cursor.close()
+
+
 def run_load_test(test_queries, iterations=10):
     execution_times = []
+    load_indexes()
     for i in range(iterations):
+        reset_database()
         for query_name, query_data in test_queries.items():
-            reset_database()
-            execution_time = execute_transaction(query_data["script"], query_data["params"])
+            execution_time = execute_transaction(query_data["script"],
+                                                 query_data["params"])
             execution_times.append((query_name, i + 1, execution_time))
-            print(f"{query_name} - Iteration {i + 1}: {execution_time:.4f} seconds")
+            print(
+                f"{query_name} - Iteration {i + 1}: {execution_time:.4f} seconds")
 
-    results_df = pd.DataFrame(execution_times, columns=["Query", "Run", "Execution Time (s)"])
+    remove_indexes()
+    results_df = pd.DataFrame(execution_times,
+                              columns=["Query", "Run", "Execution Time (s)"])
     results_df.to_csv("load_test_results.csv", index=False)
     print("\nResults saved to 'load_test_results.csv'.")
 
     print("\nSummary:")
-    summary_df = results_df.groupby("Query")["Execution Time (s)"].agg(["min", "max", "mean"]).reset_index()
+    summary_df = results_df.groupby("Query")["Execution Time (s)"].agg(
+        ["min", "max", "mean"]).reset_index()
     print(summary_df)
 
-    detailed_report = results_df.pivot(index="Run", columns="Query", values="Execution Time (s)")
+    detailed_report = results_df.pivot(index="Run", columns="Query",
+                                       values="Execution Time (s)")
     detailed_report.to_csv("detailed_load_test_results.csv")
     print("\nDetailed results saved to 'detailed_load_test_results.csv'.")
     print("\nDetailed Report:")
     print(detailed_report)
+
 
 if __name__ == "__main__":
     test_queries = {
@@ -141,8 +119,8 @@ if __name__ == "__main__":
             "script": load_sql_script("./transactions/select3.sql"),
             "params": {
                 "PARKING_ID": 10,
-                "START_DATE": "2020-5-6 12:12:12",
-                "END_DATE": "2023-5-1 12:12:12"
+                "START_DATE": datetime(2020, 12, 12, 12, 12, 12),
+                "END_DATE": datetime(2023, 12, 12, 12, 12, 12)
             }
         },
         "insert_alone": {
@@ -182,7 +160,8 @@ if __name__ == "__main__":
             }
         }
     }
-    
-    run_load_test(test_queries, iterations=10)
-    
+    #load_indexes()
+    #remove_indexes()
+    run_load_test(test_queries, iterations=5)
+
     connection.close()

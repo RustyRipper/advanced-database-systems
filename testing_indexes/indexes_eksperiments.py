@@ -2,10 +2,7 @@ import os
 import time
 import pandas as pd
 import oracledb
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
 
 # Database connection details
 DB_USER = os.environ['DB_USER']

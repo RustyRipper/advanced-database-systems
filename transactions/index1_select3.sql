@@ -1,2 +1,2 @@
-CREATE INDEX idx_btree
-    ON Reservation (user_id, parking_spot_id, start_date);
+CREATE INDEX idx_btree_select3
+    ON Reservation (user_id, parking_spot_id)

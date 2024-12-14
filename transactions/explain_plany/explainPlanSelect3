@@ -1,42 +1,41 @@
-Plan hash value: 3688855873
- 
----------------------------------------------------------------------------------------------
-| Id  | Operation                     | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
----------------------------------------------------------------------------------------------
-|   0 | SELECT STATEMENT              |             |   108 |  5616 | 32059   (1)| 00:00:02 |
-|   1 |  SORT AGGREGATE               |             |     1 |    27 |            |          |
-|   2 |   NESTED LOOPS                |             |     1 |    27 |   584   (1)| 00:00:01 |
-|*  3 |    TABLE ACCESS BY INDEX ROWID| PARKINGSPOT |     1 |     7 |     2   (0)| 00:00:01 |
-|*  4 |     INDEX UNIQUE SCAN         | SYS_C007911 |     1 |       |     1   (0)| 00:00:01 |
-|*  5 |    TABLE ACCESS FULL          | RESERVATION |     1 |    20 |   582   (1)| 00:00:01 |
-|   6 |  SORT ORDER BY                |             |   108 |  5616 | 32059   (1)| 00:00:02 |
-|*  7 |   FILTER                      |             |       |       |            |          |
-|   8 |    HASH GROUP BY              |             |   108 |  5616 | 32059   (1)| 00:00:02 |
-|*  9 |     FILTER                    |             |       |       |            |          |
-|* 10 |      HASH JOIN                |             |   108 |  5616 |   661   (1)| 00:00:01 |
-|* 11 |       HASH JOIN               |             |   108 |  3348 |   593   (1)| 00:00:01 |
-|* 12 |        TABLE ACCESS FULL      | PARKINGSPOT |   100 |   700 |     9   (0)| 00:00:01 |
-|* 13 |        TABLE ACCESS FULL      | RESERVATION |   750 | 18000 |   584   (1)| 00:00:01 |
-|  14 |       TABLE ACCESS FULL       | PARKINGUSER | 20000 |   410K|    68   (0)| 00:00:01 |
----------------------------------------------------------------------------------------------
- 
+Plan hash value: 2968759754
+
+---------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                 | Name                    | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                          |                         |   107 | 20865 | 31047   (1)| 00:00:02 |
+|   1 |  SORT AGGREGATE                           |                         |     1 |    65 |            |          |
+|   2 |   NESTED LOOPS                            |                         |    28 |  1820 |   554   (1)| 00:00:01 |
+|*  3 |    TABLE ACCESS BY INDEX ROWID            | PARKINGSPOT             |     1 |    26 |     1   (0)| 00:00:01 |
+|*  4 |     INDEX UNIQUE SCAN                     | SYS_C0016191            |     1 |       |     1   (0)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL                      | RESERVATION             |    28 |  1092 |   553   (1)| 00:00:01 |
+|   6 |  SORT ORDER BY                            |                         |   107 | 20865 | 31047   (1)| 00:00:02 |
+|*  7 |   FILTER                                  |                         |       |       |            |          |
+|   8 |    HASH GROUP BY                          |                         |   107 | 20865 | 31047   (1)| 00:00:02 |
+|*  9 |     FILTER                                |                         |       |       |            |          |
+|* 10 |      HASH JOIN                            |                         |   107 | 20865 |   616   (1)| 00:00:01 |
+|* 11 |       HASH JOIN                           |                         |   107 |  8346 |   558   (1)| 00:00:01 |
+|  12 |        TABLE ACCESS BY INDEX ROWID BATCHED| PARKINGSPOT             |   100 |  2600 |     3   (0)| 00:00:01 |
+|* 13 |         INDEX RANGE SCAN                  | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
+|* 14 |        TABLE ACCESS FULL                  | RESERVATION             |   693 | 36036 |   555   (1)| 00:00:01 |
+|  15 |       TABLE ACCESS FULL                   | PARKINGUSER             | 20670 |  2361K|    58   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------------------------------------
+
 Predicate Information (identified by operation id):
 ---------------------------------------------------
- 
-   3 - filter("PS2"."PARKING_ID"=TO_NUMBER(:PARKING_ID))
-   4 - access("PS2"."ID"=:B1)
-   5 - filter("R2"."USER_ID"=:B1 AND "R2"."PARKING_SPOT_ID"=:B2 AND 
-              SYS_EXTRACT_UTC(INTERNAL_FUNCTION("R2"."END_DATE"))<SYS_EXTRACT_UTC(CURRENT_TIMESTAMP
-              (6)))
-   7 - filter(SUM("R"."AMOUNT")>0)
-   9 - filter(TO_TIMESTAMP(:END_DATE,'YYYY-MM-DD 
-              HH24:MI:SS')>=TO_TIMESTAMP(:START_DATE,'YYYY-MM-DD HH24:MI:SS'))
-  10 - access("R"."USER_ID"="U"."ID")
-  11 - access("R"."PARKING_SPOT_ID"="PS"."ID")
-  12 - filter("PS"."PARKING_ID"=TO_NUMBER(:PARKING_ID))
-  13 - filter("R"."START_DATE">=TO_TIMESTAMP(:START_DATE,'YYYY-MM-DD HH24:MI:SS') 
-              AND "R"."START_DATE"<=TO_TIMESTAMP(:END_DATE,'YYYY-MM-DD HH24:MI:SS'))
- 
+
+"   3 - filter(""PS2"".""PARKING_ID""=TO_NUMBER(:PARKING_ID))"
+"   4 - access(""PS2"".""ID""=:B1)"
+"   5 - filter(""R2"".""USER_ID""=:B1 AND ""R2"".""PARKING_SPOT_ID""=:B2 AND "
+"              SYS_EXTRACT_UTC(INTERNAL_FUNCTION(""R2"".""END_DATE""))<SYS_EXTRACT_UTC(CURRENT_TIMESTAMP(6)))"
+"   7 - filter(SUM(""R"".""AMOUNT"")>0)"
+   9 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+"  10 - access(""R"".""USER_ID""=""U"".""ID"")"
+"  11 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"")"
+"  13 - access(""PS"".""PARKING_ID""=TO_NUMBER(:PARKING_ID))"
+"  14 - filter(""R"".""START_DATE"">=TO_TIMESTAMP(:START_DATE) AND ""R"".""START_DATE""<=TO_TIMESTAMP(:END_DATE))"
+
 Note
 -----
+   - dynamic statistics used: dynamic sampling (level=2)
    - this is an adaptive plan

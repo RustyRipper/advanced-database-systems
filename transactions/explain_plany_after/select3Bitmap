@@ -1,0 +1,43 @@
+Plan hash value: 214590526
+
+---------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                 | Name                    | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                          |                         |   107 | 20865 |  1156   (1)| 00:00:01 |
+|   1 |  SORT AGGREGATE                           |                         |     1 |    65 |            |          |
+|   2 |   NESTED LOOPS                            |                         |    28 |  1820 |    10   (0)| 00:00:01 |
+|*  3 |    TABLE ACCESS BY INDEX ROWID            | PARKINGSPOT             |     1 |    26 |     1   (0)| 00:00:01 |
+|*  4 |     INDEX UNIQUE SCAN                     | SYS_C0016191            |     1 |       |     1   (0)| 00:00:01 |
+|*  5 |    TABLE ACCESS BY INDEX ROWID BATCHED    | RESERVATION             |    28 |  1092 |    10   (0)| 00:00:01 |
+|   6 |     BITMAP CONVERSION TO ROWIDS           |                         |       |       |            |          |
+|*  7 |      BITMAP INDEX SINGLE VALUE            | IDX_BITMAP              |       |       |            |          |
+|   8 |  SORT ORDER BY                            |                         |   107 | 20865 |  1156   (1)| 00:00:01 |
+|*  9 |   FILTER                                  |                         |       |       |            |          |
+|  10 |    HASH GROUP BY                          |                         |   107 | 20865 |  1156   (1)| 00:00:01 |
+|* 11 |     FILTER                                |                         |       |       |            |          |
+|* 12 |      HASH JOIN                            |                         |   107 | 20865 |   616   (1)| 00:00:01 |
+|* 13 |       HASH JOIN                           |                         |   107 |  8346 |   558   (1)| 00:00:01 |
+|  14 |        TABLE ACCESS BY INDEX ROWID BATCHED| PARKINGSPOT             |   100 |  2600 |     3   (0)| 00:00:01 |
+|* 15 |         INDEX RANGE SCAN                  | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
+|* 16 |        TABLE ACCESS FULL                  | RESERVATION             |   693 | 36036 |   555   (1)| 00:00:01 |
+|  17 |       TABLE ACCESS FULL                   | PARKINGUSER             | 20670 |  2361K|    58   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+"   3 - filter(""PS2"".""PARKING_ID""=TO_NUMBER(:PARKING_ID))"
+"   4 - access(""PS2"".""ID""=:B1)"
+"   5 - filter(SYS_EXTRACT_UTC(INTERNAL_FUNCTION(""R2"".""END_DATE""))<SYS_EXTRACT_UTC(CURRENT_TIMESTAMP(6)))"
+"   7 - access(""R2"".""USER_ID""=:B1 AND ""R2"".""PARKING_SPOT_ID""=:B2)"
+"   9 - filter(SUM(""R"".""AMOUNT"")>0)"
+  11 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+"  12 - access(""R"".""USER_ID""=""U"".""ID"")"
+"  13 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"")"
+"  15 - access(""PS"".""PARKING_ID""=TO_NUMBER(:PARKING_ID))"
+"  16 - filter(""R"".""START_DATE"">=TO_TIMESTAMP(:START_DATE) AND ""R"".""START_DATE""<=TO_TIMESTAMP(:END_DATE))"
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+   - this is an adaptive plan

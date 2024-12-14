@@ -2,6 +2,7 @@ import oracledb
 import time
 import pandas as pd
 import subprocess
+from datetime import datetime
 
 
 def reset_database():
@@ -45,6 +46,7 @@ def execute_transaction(sql_script, params=(), is_select=True):
         dsn="localhost:1521/XE"
     )
     cursor = connection.cursor()
+    cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'")
 
     start_time = time.time()
 
@@ -67,6 +69,10 @@ def run_load_test(iterations=10):
     params_select3 = {"PARKING_ID": 10,
                       "START_DATE": "2020-12-12 12:12:12",
                       "END_DATE": "2023-12-12 12:12:12"}
+
+    params_select3_2 = {"PARKING_ID": 10,
+                        "START_DATE": datetime(2020, 12, 12, 12, 12, 12),
+                        "END_DATE": datetime(2023, 12, 12, 12, 12, 12)}
     sql_script_insert = load_sql_script("../transactions/insert_optimized.sql")
     params_insert = {"PARKING_ID": 10,
                      "USER_ID": 10,
@@ -75,29 +81,30 @@ def run_load_test(iterations=10):
                      "reference_date": "2020-11-27"}
     sql_script_select1 = load_sql_script("../transactions/select1.sql")
     params_select1 = {"min_amount": 0,
-              "registration_number_pattern": "%",
-              "parking_id": 1,
-              "min_date" : "2020-12-12 12:12:12"
-              }
+                      "registration_number_pattern": "%",
+                      "parking_id": 1,
+                      "min_date": "2020-12-12 12:12:12"
+                      }
     sql_script_delete = load_sql_script("../transactions/delete.sql")
     params_delete = {
-              "discard_date_min" : "2021-12-1 12:12:12",
-              "discard_date_max" : "2021-12-5 12:12:12"
-              }
-    sql_script_select1_deoptimized = load_sql_script("../transactions/select1_deoptimized.sql")
+        "discard_date_min": "2021-12-1 12:12:12",
+        "discard_date_max": "2021-12-5 12:12:12"
+    }
+    sql_script_select1_deoptimized = load_sql_script(
+        "../transactions/select1_deoptimized.sql")
     params_select1_deoptimized = params_select1
     sql_script = load_sql_script("../transactions/delete_deoptimized.sql")
     params_delete_deoptimized = params_delete
-    
+
     ##### SELECT 2 #####
     sql_script_select2 = load_sql_script("../transactions/select2.sql")
     params_select2 = {
         "start_date": "2024-12-11 12:12:12",
         "end_date": "2024-12-12 12:12:12"
     }
-    
+
     ##### Update #####
-    sql_script_update= load_sql_script("../transactions/update.sql")
+    sql_script_update = load_sql_script("../transactions/update.sql")
     params_update = {
         "p_min_age": 18,
         "p_color_toyota": "Red",
@@ -110,9 +117,10 @@ def run_load_test(iterations=10):
 
     execution_times = []
     for i in range(iterations):
-        reset_database()
+        # reset_database()
 
-        execution_time = execute_transaction(sql_script_select2, params_select2,
+        # execute_transaction("../transactions/index1_select3.sql", (), False)
+        execution_time = execute_transaction(sql_script_select3, params_select3_2,
                                              True)
         execution_times.append(execution_time)
         print(f"Iteration {i + 1}: {execution_time:.4f} seconds")

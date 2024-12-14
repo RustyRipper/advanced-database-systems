@@ -86,3 +86,4 @@ CREATE TABLE StripeCharge
     CONSTRAINT fk_reservation_stripe FOREIGN KEY (reservation_id) REFERENCES Reservation (id) ON DELETE CASCADE,
     CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES Payment (id) ON DELETE CASCADE
 );
+

@@ -1,4 +1,4 @@
-EXPLAIN PLAN FOR
+-- EXPLAIN PLAN FOR
 SELECT u.id || ' ' || u.firstname || ' ' || u.lastname AS parking_user,
        ps.id                                           AS parking_spot_id,
        COUNT(r.id)                                     AS total_reservations,
@@ -21,5 +21,6 @@ WHERE pk.id = :parking_id
   AND r.start_date BETWEEN :start_date AND :end_date
 GROUP BY u.id, u.firstname, u.lastname, ps.ID
 HAVING SUM(r.amount) > 0
-ORDER BY total_reservations DESC;
-SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+ORDER BY total_reservations DESC
+-- ORDER BY total_reservations DESC;
+-- SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);

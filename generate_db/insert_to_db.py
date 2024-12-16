@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = 'oracle+oracledb://system:welcome123@localhost:1521/XE'
-ddl_file_path = '../db.ddl'
+ddl_file_path = './db.ddl'
 db_remove_file_path = 'remove_db.ddl'
 
 connection = oracledb.connect(user="system", password="welcome123",

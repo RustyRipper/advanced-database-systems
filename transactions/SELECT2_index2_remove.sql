@@ -1,1 +1,1 @@
-DROP INDEX idx_reservation_brand_color_user_parking
+DROP INDEX idx_cc_brand_reg;

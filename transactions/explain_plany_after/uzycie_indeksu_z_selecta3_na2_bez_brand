@@ -1,0 +1,55 @@
+Plan hash value: 2532946374
+ 
+-------------------------------------------------------------------------------------------------------------
+| Id  | Operation                               | Name              | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                        |                   |   750 | 42000 |   269K  (1)| 00:00:11 |
+|   1 |  SORT AGGREGATE                         |                   |     1 |    42 |            |          |
+|*  2 |   FILTER                                |                   |       |       |            |          |
+|   3 |    NESTED LOOPS                         |                   |     1 |    42 |    21   (0)| 00:00:01 |
+|   4 |     NESTED LOOPS                        |                   |     1 |    42 |    21   (0)| 00:00:01 |
+|*  5 |      TABLE ACCESS BY INDEX ROWID BATCHED| RESERVATION       |     1 |    25 |    20   (0)| 00:00:01 |
+|*  6 |       INDEX RANGE SCAN                  | IDX_BTREE_SELECT3 |    16 |       |     3   (0)| 00:00:01 |
+|*  7 |      INDEX UNIQUE SCAN                  | SYS_C008589       |     1 |       |     0   (0)| 00:00:01 |
+|*  8 |     TABLE ACCESS BY INDEX ROWID         | CLIENTCAR         |     1 |    17 |     1   (0)| 00:00:01 |
+|   9 |  SORT AGGREGATE                         |                   |     1 |    37 |            |          |
+|* 10 |   FILTER                                |                   |       |       |            |          |
+|* 11 |    HASH JOIN                            |                   |   749 | 27713 |   685   (1)| 00:00:01 |
+|* 12 |     TABLE ACCESS FULL                   | RESERVATION       |   750 | 15000 |   583   (1)| 00:00:01 |
+|* 13 |     TABLE ACCESS FULL                   | CLIENTCAR         |   806 | 13702 |   102   (0)| 00:00:01 |
+|  14 |  SORT AGGREGATE                         |                   |     1 |    15 |            |          |
+|* 15 |   FILTER                                |                   |       |       |            |          |
+|* 16 |    TABLE ACCESS FULL                    | RESERVATION       |     1 |    15 |   581   (1)| 00:00:01 |
+|  17 |  SORT ORDER BY                          |                   |   750 | 42000 |   269K  (1)| 00:00:11 |
+|  18 |   HASH GROUP BY                         |                   |   750 | 42000 |   269K  (1)| 00:00:11 |
+|* 19 |    FILTER                               |                   |       |       |            |          |
+|* 20 |     HASH JOIN                           |                   |   750 | 42000 |   685   (1)| 00:00:01 |
+|* 21 |      TABLE ACCESS FULL                  | RESERVATION       |   750 | 21750 |   583   (1)| 00:00:01 |
+|  22 |      TABLE ACCESS FULL                  | CLIENTCAR         | 50000 |  1318K|   102   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+   5 - filter("R_SUB"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R_SUB"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+   6 - access("R_SUB"."USER_ID"=:B1)
+   7 - access("CC_SUB"."REGISTRATION_NUMBER"="R_SUB"."REGISTRATION_NUMBER")
+   8 - filter("CC_SUB"."BRAND"=:B1)
+  10 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+  11 - access("CC_SUB"."REGISTRATION_NUMBER"="R_SUB"."REGISTRATION_NUMBER")
+  12 - filter("R_SUB"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R_SUB"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+  13 - filter("CC_SUB"."BRAND"=:B1)
+  15 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+  16 - filter("R_SUB"."PARKING_SPOT_ID"=:B1 AND "R_SUB"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R_SUB"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+  19 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+  20 - access("CC"."REGISTRATION_NUMBER"="R"."REGISTRATION_NUMBER")
+  21 - filter("R"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+ 
+Note
+-----
+   - this is an adaptive plan

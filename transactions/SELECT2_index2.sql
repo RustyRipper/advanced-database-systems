@@ -1,1 +1,1 @@
-CREATE INDEX idx_reservation_brand_color_user_parking ON Reservation(brand, user_id, parking_spot_id);
+CREATE INDEX idx_cc_brand_reg ON ClientCar(brand, registration_number);

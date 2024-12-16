@@ -1,0 +1,52 @@
+Plan hash value: 2504044644
+ 
+------------------------------------------------------------------------------------------------------------
+| Id  | Operation                              | Name              | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                       |                   |   750 | 42000 |   265K  (1)| 00:00:11 |
+|   1 |  SORT AGGREGATE                        |                   |     1 |    42 |            |          |
+|*  2 |   FILTER                               |                   |       |       |            |          |
+|   3 |    NESTED LOOPS                        |                   |     1 |    42 |    21   (0)| 00:00:01 |
+|*  4 |     TABLE ACCESS BY INDEX ROWID BATCHED| RESERVATION       |     1 |    25 |    20   (0)| 00:00:01 |
+|*  5 |      INDEX RANGE SCAN                  | IDX_BTREE_SELECT3 |    16 |       |     3   (0)| 00:00:01 |
+|*  6 |     INDEX RANGE SCAN                   | IDX_CC_REG_BRAND  |     1 |    17 |     1   (0)| 00:00:01 |
+|   7 |  SORT AGGREGATE                        |                   |     1 |    37 |            |          |
+|*  8 |   FILTER                               |                   |       |       |            |          |
+|*  9 |    HASH JOIN                           |                   |   749 | 27713 |   634   (1)| 00:00:01 |
+|* 10 |     TABLE ACCESS FULL                  | RESERVATION       |   750 | 15000 |   583   (1)| 00:00:01 |
+|* 11 |     INDEX FAST FULL SCAN               | IDX_CC_REG_BRAND  |   806 | 13702 |    51   (0)| 00:00:01 |
+|  12 |  SORT AGGREGATE                        |                   |     1 |    15 |            |          |
+|* 13 |   FILTER                               |                   |       |       |            |          |
+|* 14 |    TABLE ACCESS FULL                   | RESERVATION       |     1 |    15 |   581   (1)| 00:00:01 |
+|  15 |  SORT ORDER BY                         |                   |   750 | 42000 |   265K  (1)| 00:00:11 |
+|  16 |   HASH GROUP BY                        |                   |   750 | 42000 |   265K  (1)| 00:00:11 |
+|* 17 |    FILTER                              |                   |       |       |            |          |
+|* 18 |     HASH JOIN                          |                   |   750 | 42000 |   685   (1)| 00:00:01 |
+|* 19 |      TABLE ACCESS FULL                 | RESERVATION       |   750 | 21750 |   583   (1)| 00:00:01 |
+|  20 |      TABLE ACCESS FULL                 | CLIENTCAR         | 50000 |  1318K|   102   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+   4 - filter("R_SUB"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R_SUB"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+   5 - access("R_SUB"."USER_ID"=:B1)
+   6 - access("CC_SUB"."REGISTRATION_NUMBER"="R_SUB"."REGISTRATION_NUMBER" AND "CC_SUB"."BRAND"=:B1)
+   8 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+   9 - access("CC_SUB"."REGISTRATION_NUMBER"="R_SUB"."REGISTRATION_NUMBER")
+  10 - filter("R_SUB"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R_SUB"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+  11 - filter("CC_SUB"."BRAND"=:B1)
+  13 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+  14 - filter("R_SUB"."PARKING_SPOT_ID"=:B1 AND "R_SUB"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R_SUB"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+  17 - filter(TO_TIMESTAMP(:END_DATE)>=TO_TIMESTAMP(:START_DATE))
+  18 - access("CC"."REGISTRATION_NUMBER"="R"."REGISTRATION_NUMBER")
+  19 - filter("R"."START_DATE">=TO_TIMESTAMP(:START_DATE) AND 
+              "R"."START_DATE"<=TO_TIMESTAMP(:END_DATE))
+ 
+Note
+-----
+   - this is an adaptive plan

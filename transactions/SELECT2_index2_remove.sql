@@ -1,1 +1,1 @@
-DROP INDEX idx_cc_brand_reg;
+DROP INDEX idx_cc_brand_reg

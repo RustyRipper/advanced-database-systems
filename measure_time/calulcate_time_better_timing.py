@@ -52,6 +52,7 @@ def load_indexes():
     cursor = connection.cursor()
     cursor.execute(load_sql_script("./transactions/index1_select3.sql"))
     cursor.execute(load_sql_script("./transactions/index2_select3.sql"))
+    cursor.execute(load_sql_script("./transactions/index1_delete.sql"))
     connection.commit()
     cursor.close()
 
@@ -60,6 +61,7 @@ def remove_indexes():
     cursor = connection.cursor()
     cursor.execute(load_sql_script("./transactions/index1_select3_remove.sql"))
     cursor.execute(load_sql_script("./transactions/index2_select3_remove.sql"))
+    cursor.execute(load_sql_script("./transactions/index1_delete_remove.sql"))
     connection.commit()
     cursor.close()
 

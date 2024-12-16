@@ -1,1 +1,1 @@
-DROP INDEX idx_reservation_parking_spot_id
+DROP INDEX idx_reservation_user_parking_startdate_btree

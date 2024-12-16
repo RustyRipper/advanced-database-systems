@@ -1,1 +1,1 @@
-CREATE BITMAP INDEX idx_parkingspot_active ON ParkingSpot(active)
+CREATE INDEX idx_reservation_brand_color_user_parking ON Reservation(brand, user_id, parking_spot_id);

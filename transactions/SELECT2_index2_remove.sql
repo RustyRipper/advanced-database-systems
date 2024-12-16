@@ -1,1 +1,1 @@
-DROP INDEX idx_parkingspot_active
+DROP INDEX idx_reservation_brand_color_user_parking

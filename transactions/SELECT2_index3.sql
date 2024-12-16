@@ -1,1 +1,0 @@
-CREATE INDEX idx_clientcar_lower_brand ON ClientCar(LOWER(brand))

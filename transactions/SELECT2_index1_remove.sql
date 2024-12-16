@@ -1,0 +1,1 @@
+DROP INDEX idx_reservation_parking_spot_id

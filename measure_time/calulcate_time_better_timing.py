@@ -53,6 +53,8 @@ def load_indexes():
     cursor.execute(load_sql_script("./transactions/index1_select3.sql"))
     cursor.execute(load_sql_script("./transactions/index2_select3.sql"))
     cursor.execute(load_sql_script("./transactions/index1_delete.sql"))
+    cursor.execute(load_sql_script("./transactions/SELECT2_index1.sql"))
+    cursor.execute(load_sql_script("./transactions/SELECT2_index2.sql"))
     connection.commit()
     cursor.close()
 
@@ -62,13 +64,15 @@ def remove_indexes():
     cursor.execute(load_sql_script("./transactions/index1_select3_remove.sql"))
     cursor.execute(load_sql_script("./transactions/index2_select3_remove.sql"))
     cursor.execute(load_sql_script("./transactions/index1_delete_remove.sql"))
+    cursor.execute(load_sql_script("./transactions/SELECT2_index1_remove.sql"))
+    cursor.execute(load_sql_script("./transactions/SELECT2_index2_remove.sql"))
     connection.commit()
     cursor.close()
 
 
 def run_load_test(test_queries, iterations=10):
     execution_times = []
-    remove_indexes()
+    # remove_indexes() # Do usuniecia jesli sa przed ponownym zaladowaniem na wypadek dodania nowych etc
     load_indexes()
     for i in range(iterations):
         reset_database()
@@ -116,6 +120,13 @@ if __name__ == "__main__":
                 "registration_number_pattern": "%",
                 "parking_id": 1,
                 "min_date": "2020-12-12 12:12:12"
+            }
+        },
+         "select2": {
+            "script": load_sql_script("./transactions/select2_bez_timestamp.sql"),
+            "params": {
+                "START_DATE": datetime(2020, 5, 1, 12, 12, 12),
+                "END_DATE": datetime(2020, 5, 12, 12, 12, 12)
             }
         },
         "select3": {

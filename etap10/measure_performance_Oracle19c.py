@@ -315,25 +315,35 @@ if __name__ == "__main__":
     remove_inmemory_compression("Reservation")
     remove_inmemory_compression("ParkingUser")
     remove_inmemory_compression("ParkingSpot")
-    restart_database()
-    connection = oracledb.connect(
-        user=DB_USER,
-        password=DB_PASSWORD,
-        dsn=DSN
-    )
+    # restart_database()
+    # connection = oracledb.connect(
+    #     user=DB_USER,
+    #     password=DB_PASSWORD,
+    #     dsn=DSN
+    # )
     run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="load_test_no_compression")
     # query_memory_usage()
 
     # Test 2: Kompresja danych (Reservation)
     set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
-    restart_database()
+    # restart_database()
+    # connection = oracledb.connect(
+    #     user=DB_USER,
+    #     password=DB_PASSWORD,
+    #     dsn=DSN
+    # )
     run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="load_test_reservation_compression")
     # query_memory_usage()
 
     # Test 3: Szybkie filtrowanie na tabeli użytkowników (ParkingUser)
     set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
     set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    restart_database()
+    # restart_database()
+    # connection = oracledb.connect(
+    #     user=DB_USER,
+    #     password=DB_PASSWORD,
+    #     dsn=DSN
+    # )
     run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="load_test_user_compression")
     # query_memory_usage()
 

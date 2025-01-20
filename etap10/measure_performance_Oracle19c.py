@@ -5,6 +5,8 @@ import oracledb
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
+import pandas as pd
+import matplotlib.pyplot as plt
 
 load_dotenv()
 
@@ -13,12 +15,15 @@ db_remove_file_path = './remove_db.ddl'
 
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
-DSN = "localhost:1521/ORCLPDB1"
+# DSN = "localhost:1521/ORCLPDB1"
+
+DSN = "localhost:1521/ORCLCDB"
 
 connection = oracledb.connect(
     user=DB_USER,
     password=DB_PASSWORD,
-    dsn=DSN
+    dsn=DSN,
+    mode=oracledb.SYSDBA
 )
 
 def load_sql_script(filename):
@@ -91,7 +96,7 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
     if indexes:
         load_indexes()
     
-    # Generowanie EXPLAIN PLAN dla kazdego zapytania
+    # Generowanie EXPLAIN PLAN tylko raz dla każdego zapytania
     reset_database()
     for query_name, query_data in test_queries.items():
         explain_plan = generate_explain_plan(query_data["script"], query_data["params"])
@@ -106,6 +111,12 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
             execution_time = execute_transaction(query_data["script"], query_data["params"])
             execution_times.append((query_name, i + 1, execution_time))
             print(f"{query_name} - Iteration {i + 1}: {execution_time:.4f} seconds")
+        
+        # Zbieranie danych pamięciowych po każdej iteracji
+        # query_memory_usage(filename_prefix=filename_prefix + f"_iteration_{i + 1}")
+    
+    query_memory_usage(filename_prefix=filename_prefix + f"_memory" )
+                       
     if indexes:
         remove_indexes()
     
@@ -117,12 +128,20 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
     summary_df = results_df.groupby("Query")["Execution Time (s)"].agg(["min", "max", "mean"]).reset_index()
     print(summary_df)
     
+    # Zapisanie tabeli ze średnimi czasami wykonania
+    average_times_df = summary_df.rename(columns={"mean": "Average Execution Time (s)"})[["Query", "Average Execution Time (s)"]]
+    average_times_df.to_csv(os.path.join(test_results_dir, f"{filename_prefix}_average_execution_times.csv"), index=False)
+    print(f"\nAverage execution times saved to '{test_results_dir}/{filename_prefix}_average_execution_times.csv'.")
+    
     detailed_report = results_df.pivot(index="Run", columns="Query", values="Execution Time (s)")
     detailed_report.to_csv(os.path.join(test_results_dir, f"{filename_prefix}_detailed_results.csv"))
     print(f"\nDetailed results saved to '{test_results_dir}/{filename_prefix}_detailed_results.csv'.")
     print("\nDetailed Report:")
     print(detailed_report)
-
+    
+    # Generowanie wykresów zmian pamięci
+    # generate_memory_plots(test_results_dir, filename_prefix)
+    
 def remove_inmemory_compression(table):
     cursor = connection.cursor()
     cursor.execute(f"ALTER TABLE {table} NO INMEMORY")
@@ -142,8 +161,55 @@ def set_memory_parameters(inmemory_size, pga_aggregate_target):
     cursor.execute(f"ALTER SYSTEM SET PGA_AGGREGATE_TARGET = {pga_aggregate_target} SCOPE=SPFILE")
     connection.commit()
     cursor.close()
+    
+def generate_memory_plots(test_results_dir, filename_prefix):
+    import glob
 
-def query_memory_usage(filename_prefix):
+    # Ścieżka do plików session_level_statistics.csv
+    stats_files = glob.glob(os.path.join(test_results_dir, f"{filename_prefix}_iteration_*", "session_level_statistics.csv"))
+    
+    # Lista statystyk do wykresów
+    selected_stats = [
+        "IM scan rows optimized",
+        "IM scan rows projected",
+        "IM scan CUs memcompress for *",
+        "IM scan EU bytes in-memory"
+    ]
+    
+    memory_data = {}
+    
+    for file in stats_files:
+        iteration = int(os.path.basename(os.path.dirname(file)).split("_")[-1])
+        df = pd.read_csv(file)
+        for stat in selected_stats:
+            value = df[df['name'] == stat]['total_value'].values
+            if len(value) > 0:
+                memory_data.setdefault(stat, []).append(value[0])
+            else:
+                memory_data.setdefault(stat, []).append(0)
+    
+    # Tworzenie DataFrame
+    memory_df = pd.DataFrame(memory_data, index=range(1, len(stats_files)+1))
+    memory_df.index.name = 'Iteration'
+    
+    # Generowanie wykresów
+    plt.figure(figsize=(12, 8))
+    for stat in selected_stats:
+        plt.plot(memory_df.index, memory_df[stat], marker='o', label=stat)
+    
+    plt.xlabel('Iteration')
+    plt.ylabel('Total Value')
+    plt.title('Session Level Statistics Over Iterations')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plot_path = os.path.join(test_results_dir, f"{filename_prefix}_memory_statistics_plot.png")
+    plt.savefig(plot_path)
+    plt.show()
+    print(f"Memory statistics plot saved to '{plot_path}'.")
+
+def query_memory_usage(filename_prefix="load_test_user_compression"):
+
     cursor = connection.cursor()
     
     # Tworzenie ścieżki do folderu na wyniki pamięciowe
@@ -177,6 +243,55 @@ def query_memory_usage(filename_prefix):
     memory_dynamic_columns = [desc[0] for desc in cursor.description]
     memory_dynamic_df = pd.DataFrame(memory_dynamic_results, columns=memory_dynamic_columns)
     memory_dynamic_df.to_csv(os.path.join(test_results_dir, "memory_dynamic_components.csv"), index=False)
+    
+    # Sprawdzenie statystyk na poziomie sesji dla In-Memory
+    session_stats = [
+        "IM scan rows optimized",
+        "IM scan rows projected",
+        "IM scan rows",
+        "IM scan rows valid",
+        "IM scan CUs no memcompress",
+        "IM scan CUs memcompress for *",
+        "IM scan CUs columns accessed",
+        "IM scan CUs invalid or missing revert to on disk extent",
+        "IM scan CUs pruned",
+        "IM scan segments minmax eligible",
+        "IM scan segments disk",
+        "IM scan CUs predicates applied",
+        "IM scan CUs predicates optimized",
+        "IM scan CUs predicates received",
+        "IM scan EU rows",
+        "IM scan EUs no memcompress",
+        "IM scan EUs memcompress for *",
+        "IM scan EUs columns accessed",
+        "IM scan EUs columns decompressed",
+        "IM scan EU bytes in-memory",
+        "IM scan EU bytes uncompressed",
+        "IM scan EUs columns theoretical max",
+        "IM scan EUs split pieces",
+        "IM populate segments requested",
+        "table scan disk IMC fallback",
+        "table scan disk non-IMC rows gotten",
+        "table scans (IM)",
+        "session logical reads - IM"
+    ]
+    
+    # Tworzenie zapytania do pobrania statystyk sesji
+    stats_placeholders = "', '".join(session_stats)
+    session_stats_query = f"""
+        SELECT n.name, SUM(s.value) as total_value
+        FROM v$sesstat s
+        JOIN v$statname n ON s.statistic# = n.statistic#
+        WHERE n.name IN ('{stats_placeholders}')
+        GROUP BY n.name
+    """
+    
+    cursor.execute(session_stats_query)
+    session_results = cursor.fetchall()
+    session_columns = [desc[0] for desc in cursor.description]
+    session_df = pd.DataFrame(session_results, columns=session_columns)
+    session_df.to_csv(os.path.join(test_results_dir, "session_level_statistics.csv"), index=False)
+    print(f"Session level statistics saved to '{os.path.join(test_results_dir, 'session_level_statistics.csv')}'.")
     
     cursor.close()
 
@@ -293,47 +408,116 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Indexes removal failed, probably they don't exist: {e}")
         pass
+    
+    #! Indexes
 
     # Test 1: Brak kompresji
     remove_inmemory_compression("Reservation")
     remove_inmemory_compression("ParkingUser")
     remove_inmemory_compression("ParkingSpot")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="load_test_NO_compression_with_indexes")
-    query_memory_usage("load_test_NO_compression_with_indexes")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="NO_compression_with_indexes")
+    query_memory_usage("NO_compression_with_indexes")
 
-    # Test 2: Kompresja danych (Reservation)
+    # Test 2: Kompresja danych High Capacity
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY HIGH")
     set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="load_test_RESERVATION_MEMCOMPRESS_with_indexes")
-    query_memory_usage("load_test_RESERVATION_MEMCOMPRESS_with_indexes")
-
-    # Test 3: Szybkie filtrowanie na tabeli użytkowników (ParkingUser)
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="load_test_USER_MEMCOMPRESS_with_indexes")
-    query_memory_usage("load_test_USER_MEMCOMPRESS_with_indexes")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_CAPACITY_HIGH_with_indexes")
+    query_memory_usage("MEMCOMPRESS_CAPACITY_HIGH_with_indexes")
     
-    #! NO INDEXES
+    # Test : Kompresja danych Low Capacity
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY LOW")
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY LOW")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_CAPACITY_LOW_with_indexes")
+    query_memory_usage("MEMCOMPRESS_CAPACITY_LOW_with_indexes")
+    
     remove_inmemory_compression("Reservation")
     remove_inmemory_compression("ParkingUser")
     remove_inmemory_compression("ParkingSpot")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="load_test_NO_compression_NO_indexes")
-    query_memory_usage("load_test_NO_compression_NO_indexes")
 
-    # Test 2: Kompresja danych (Reservation)
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="load_test_RESERVATION_MEMCOMPRESS_NO_indexes")
-    query_memory_usage("load_test_RESERVATION_MEMCOMPRESS_NO_indexes")
-
-    # Test 3: Szybkie filtrowanie na tabeli użytkowników (ParkingUser)
+    # Test 3: QUERY PRIORITY Query High
     set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_HIGH_with_indexes")
+    query_memory_usage("MEMCOMPRESS_HIGH_with_indexes")
+    
+    # Test 4: QUERY PRIORITY Query Low
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
     set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="load_test_USER_MEMCOMPRESS_NO_indexes")
-    query_memory_usage("load_test_USER_MEMCOMPRESS_NO_indexes")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_LOW_with_indexes")
+    query_memory_usage("MEMCOMPRESS_LOW_with_indexes")
+    
+    # Test 5: QUERY PRIORITY Query High + PRIORITY HIGH
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_HIGH_PRIORITY_HIGH_with_indexes")
+    query_memory_usage("MEMCOMPRESS_HIGH_PRIORITY_HIGH_with_indexes")
+    
+    # Test 6: QUERY PRIORITY Query LOW + PRIORITY HIGH
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_LOW_PRIORITY_HIGH_with_indexes")
+    query_memory_usage("MEMCOMPRESS_LOW_PRIORITY_HIGH_with_indexes")
+    
+    remove_inmemory_compression("Reservation")
+    remove_inmemory_compression("ParkingUser")
+    remove_inmemory_compression("ParkingSpot")
+    
+    #! No Indexes
+    #Test 1: Brak kompresji
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="NO_compression_NO_indexes")
+    query_memory_usage("NO_compression_NO_indexes")
+    
+    
+    #Test 2: Kompresja danych High Capacity
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY HIGH")
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_CAPACITY_HIGH_no_indexes")
+    query_memory_usage("MEMCOMPRESS_CAPACITY_HIGH_no_indexes")
 
-    # set_inmemory_compression("Reservation", "NO INMEMORY")
-    # set_inmemory_compression("ParkingUser", "NO INMEMORY")
-    # set_inmemory_compression("ParkingSpot", "NO INMEMORY")
-    # set_memory_parameters("0", "2G")  # Ustawienie INMEMORY_SIZE na 0 i PGA_AGGREGATE_TARGET na 2G
-    # restart_database()
+    # Test 3: Kompresja danych Low Capacity
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY LOW")
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY LOW")
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_CAPACITY_LOW_no_indexes")
+    query_memory_usage("MEMCOMPRESS_CAPACITY_LOW_no_indexes")
+
+    remove_inmemory_compression("Reservation")
+    remove_inmemory_compression("ParkingUser")
+    remove_inmemory_compression("ParkingSpot")
+
+    # Test 4: QUERY PRIORITY Query High
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_HIGH_no_indexes")
+    query_memory_usage("MEMCOMPRESS_HIGH_no_indexes")
+
+    # Test 5: QUERY PRIORITY Query Low
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_LOW_no_indexes")
+    query_memory_usage("MEMCOMPRESS_LOW_no_indexes")
+
+    # Test 6: QUERY PRIORITY Query High + PRIORITY HIGH
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_HIGH_PRIORITY_HIGH_no_indexes")
+    query_memory_usage("MEMCOMPRESS_HIGH_PRIORITY_HIGH_no_indexes")
+
+    # Test 7: QUERY PRIORITY Query LOW + PRIORITY HIGH
+    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_LOW_PRIORITY_HIGH_no_indexes")
+    query_memory_usage("MEMCOMPRESS_LOW_PRIORITY_HIGH_no_indexes")
+
+    remove_inmemory_compression("Reservation")
+    remove_inmemory_compression("ParkingUser")
+    remove_inmemory_compression("ParkingSpot")
 
     connection.close()

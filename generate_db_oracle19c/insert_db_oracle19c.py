@@ -8,9 +8,24 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 # Set up environment variables for user credentials
+# DB_USER = os.environ['DB_USER']
+# DB_PASSWORD = os.environ['DB_PASSWORD']
+
+
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
+# DSN = "localhost:1521/ORCLPDB1"
+
+DSN = "localhost:1521/ORCLCDB"
 DATABASE_URL = f'oracle+oracledb://{DB_USER}:{DB_PASSWORD}@localhost:1521'
+
+connection = oracledb.connect(
+    user=DB_USER,
+    password=DB_PASSWORD,
+    dsn=DSN,
+    mode=oracledb.SYSDBA
+)
+
 
 import os
 
@@ -25,7 +40,7 @@ ddl_file_path = './db.ddl'
 db_remove_file_path = './remove_db.ddl'
 
 # Establish Oracle 19c connection
-connection = oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn="localhost:1521/ORCLPDB1")
+# connection = oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn="localhost:1521/ORCLPDB1")
 cursor = connection.cursor()
 
 

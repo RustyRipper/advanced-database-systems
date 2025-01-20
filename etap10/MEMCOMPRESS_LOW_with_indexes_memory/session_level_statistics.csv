@@ -1,0 +1,27 @@
+NAME,TOTAL_VALUE
+IM scan CUs no memcompress,0
+IM scan CUs columns accessed,0
+IM scan EUs columns decompressed,0
+IM scan CUs predicates optimized,0
+IM scan CUs pruned,0
+table scans (IM),0
+table scan disk non-IMC rows gotten,464757884
+table scan disk IMC fallback,0
+IM scan CUs predicates applied,0
+IM scan segments minmax eligible,0
+IM scan EU bytes in-memory,0
+IM scan EU bytes uncompressed,0
+IM scan EU rows,0
+IM scan rows,0
+IM scan rows projected,0
+IM scan CUs predicates received,0
+IM populate segments requested,0
+IM scan EUs columns accessed,0
+IM scan CUs invalid or missing revert to on disk extent,0
+IM scan EUs no memcompress,0
+session logical reads - IM,0
+IM scan EUs columns theoretical max,0
+IM scan EUs split pieces,0
+IM scan rows valid,0
+IM scan rows optimized,0
+IM scan segments disk,0

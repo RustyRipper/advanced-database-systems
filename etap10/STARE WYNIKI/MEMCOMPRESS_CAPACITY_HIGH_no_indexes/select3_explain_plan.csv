@@ -1,0 +1,42 @@
+PLAN_TABLE_OUTPUT
+Plan hash value: 1652441635
+ 
+---------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                 | Name                    | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                          |                         |   108 | 21060 | 30452   (1)| 00:00:02 |
+|   1 |  SORT AGGREGATE                           |                         |     1 |    65 |            |          |
+|   2 |   NESTED LOOPS                            |                         |    30 |  1950 |   554   (1)| 00:00:01 |
+|*  3 |    TABLE ACCESS BY INDEX ROWID            | PARKINGSPOT             |     1 |    26 |     2   (0)| 00:00:01 |
+|*  4 |     INDEX UNIQUE SCAN                     | SYS_C007465             |     1 |       |     1   (0)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL                      | RESERVATION             |    30 |  1170 |   552   (1)| 00:00:01 |
+|   6 |  SORT ORDER BY                            |                         |   108 | 21060 | 30452   (1)| 00:00:02 |
+|*  7 |   FILTER                                  |                         |       |       |            |          |
+|   8 |    HASH GROUP BY                          |                         |   108 | 21060 | 30452   (1)| 00:00:02 |
+|*  9 |     FILTER                                |                         |       |       |            |          |
+|* 10 |      HASH JOIN                            |                         |   108 | 21060 |   615   (1)| 00:00:01 |
+|* 11 |       HASH JOIN                           |                         |   108 |  8424 |   557   (1)| 00:00:01 |
+|  12 |        TABLE ACCESS BY INDEX ROWID BATCHED| PARKINGSPOT             |   100 |  2600 |     3   (0)| 00:00:01 |
+|* 13 |         INDEX RANGE SCAN                  | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
+|* 14 |        TABLE ACCESS FULL                  | RESERVATION             |   739 | 38428 |   554   (1)| 00:00:01 |
+|  15 |       TABLE ACCESS FULL                   | PARKINGUSER             | 19553 |  2234K|    58   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+"   3 - filter(""PS2"".""PARKING_ID""=:PARKING_ID)"
+"   4 - access(""PS2"".""ID""=:B1)"
+"   5 - filter(""R2"".""USER_ID""=:B1 AND ""R2"".""PARKING_SPOT_ID""=:B2 AND "
+"              SYS_EXTRACT_UTC(INTERNAL_FUNCTION(""R2"".""END_DATE""))<SYS_EXTRACT_UTC(CURRENT_TIMESTAMP(6)))"
+"   7 - filter(SUM(""R"".""AMOUNT"")>0)"
+   9 - filter(:END_DATE>=:START_DATE)
+"  10 - access(""R"".""USER_ID""=""U"".""ID"")"
+"  11 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"")"
+"  13 - access(""PS"".""PARKING_ID""=:PARKING_ID)"
+"  14 - filter(""R"".""START_DATE"">=:START_DATE AND ""R"".""START_DATE""<=:END_DATE)"
+ 
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+   - this is an adaptive plan

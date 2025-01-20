@@ -1,0 +1,55 @@
+PLAN_TABLE_OUTPUT
+Plan hash value: 4117557039
+ 
+----------------------------------------------------------------------------------------------
+| Id  | Operation                      | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT               |             |   739 |   106K|   651K  (1)| 00:00:26 |
+|   1 |  SORT AGGREGATE                |             |     1 |   107 |            |          |
+|*  2 |   FILTER                       |             |       |       |            |          |
+|   3 |    NESTED LOOPS                |             |     7 |   749 |   559   (1)| 00:00:01 |
+|   4 |     NESTED LOOPS               |             |     7 |   749 |   559   (1)| 00:00:01 |
+|*  5 |      TABLE ACCESS FULL         | RESERVATION |     7 |   371 |   552   (1)| 00:00:01 |
+|*  6 |      INDEX UNIQUE SCAN         | SYS_C007479 |     1 |       |     0   (0)| 00:00:01 |
+|*  7 |     TABLE ACCESS BY INDEX ROWID| CLIENTCAR   |     1 |    54 |     1   (0)| 00:00:01 |
+|   8 |  SORT AGGREGATE                |             |     1 |    94 |            |          |
+|*  9 |   FILTER                       |             |       |       |            |          |
+|* 10 |    HASH JOIN                   |             |   584 | 54896 |   649   (1)| 00:00:01 |
+|* 11 |     TABLE ACCESS FULL          | CLIENTCAR   |   579 | 31266 |    95   (0)| 00:00:01 |
+|* 12 |     TABLE ACCESS FULL          | RESERVATION |   739 | 29560 |   554   (1)| 00:00:01 |
+|  13 |  SORT AGGREGATE                |             |     1 |    26 |            |          |
+|* 14 |   FILTER                       |             |       |       |            |          |
+|* 15 |    TABLE ACCESS FULL           | RESERVATION |     7 |   182 |   552   (1)| 00:00:01 |
+|  16 |  SORT ORDER BY                 |             |   739 |   106K|   651K  (1)| 00:00:26 |
+|  17 |   HASH GROUP BY                |             |   739 |   106K|   651K  (1)| 00:00:26 |
+|* 18 |    HASH JOIN                   |             |   739 |   106K|   650   (1)| 00:00:01 |
+|  19 |     VIEW                       | VW_GBF_7    |   739 | 48774 |   555   (1)| 00:00:01 |
+|  20 |      HASH GROUP BY             |             |   739 | 48774 |   555   (1)| 00:00:01 |
+|* 21 |       FILTER                   |             |       |       |            |          |
+|* 22 |        TABLE ACCESS FULL       | RESERVATION |   739 | 48774 |   554   (1)| 00:00:01 |
+|  23 |     TABLE ACCESS FULL          | CLIENTCAR   | 57850 |  4576K|    95   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter(:END_DATE>=:START_DATE)
+"   5 - filter(""R_SUB"".""USER_ID""=:B1 AND ""R_SUB"".""START_DATE"">=:START_DATE AND "
+"              ""R_SUB"".""START_DATE""<=:END_DATE)"
+"   6 - access(""CC_SUB"".""REGISTRATION_NUMBER""=""R_SUB"".""REGISTRATION_NUMBER"")"
+"   7 - filter(""CC_SUB"".""BRAND""=:B1)"
+   9 - filter(:END_DATE>=:START_DATE)
+"  10 - access(""CC_SUB"".""REGISTRATION_NUMBER""=""R_SUB"".""REGISTRATION_NUMBER"")"
+"  11 - filter(""CC_SUB"".""BRAND""=:B1)"
+"  12 - filter(""R_SUB"".""START_DATE"">=:START_DATE AND ""R_SUB"".""START_DATE""<=:END_DATE)"
+  14 - filter(:END_DATE>=:START_DATE)
+"  15 - filter(""R_SUB"".""PARKING_SPOT_ID""=:B1 AND ""R_SUB"".""START_DATE"">=:START_DATE AND "
+"              ""R_SUB"".""START_DATE""<=:END_DATE)"
+"  18 - access(""CC"".""REGISTRATION_NUMBER""=""ITEM_1"")"
+  21 - filter(:START_DATE<=:END_DATE)
+"  22 - filter(""R"".""START_DATE""<=:END_DATE AND ""R"".""START_DATE"">=:START_DATE)"
+ 
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+   - this is an adaptive plan

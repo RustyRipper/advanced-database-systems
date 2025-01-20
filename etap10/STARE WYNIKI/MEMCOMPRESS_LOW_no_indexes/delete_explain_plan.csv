@@ -1,0 +1,34 @@
+PLAN_TABLE_OUTPUT
+Plan hash value: 1966050391
+ 
+----------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------------
+|   0 | DELETE STATEMENT              |              |   739 | 40645 |   379K  (1)| 00:00:15 |
+|   1 |  DELETE                       | RESERVATION  |       |       |            |          |
+|*  2 |   FILTER                      |              |       |       |            |          |
+|*  3 |    FILTER                     |              |       |       |            |          |
+|*  4 |     TABLE ACCESS FULL         | RESERVATION  |   739 | 40645 |   553   (1)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL          | STRIPECHARGE |    65 |  1300 |  1026   (1)| 00:00:01 |
+|*  6 |    TABLE ACCESS BY INDEX ROWID| PARKINGSPOT  |     1 |    16 |     2   (0)| 00:00:01 |
+|*  7 |     INDEX UNIQUE SCAN         | SYS_C007465  |     1 |       |     1   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+"   2 - filter( EXISTS (SELECT 0 FROM ""STRIPECHARGE"" ""SC"" WHERE ""SC"".""RESERVATION_ID"" "
+"              IS NOT NULL AND ""SC"".""RESERVATION_ID""=:B1 AND ""SC"".""SUCCESS""='FAILURE') OR  EXISTS "
+"              (SELECT 0 FROM ""PARKINGSPOT"" ""PS"" WHERE ""PS"".""ID""=:B2 AND ""PS"".""ACTIVE""='N'))"
+"   3 - filter(TO_TIMESTAMP(:DISCARD_DATE_MAX,'YYYY-MM-DD "
+"              HH24:MI:SS')>TO_TIMESTAMP(:DISCARD_DATE_MIN,'YYYY-MM-DD HH24:MI:SS'))"
+"   4 - filter(""R"".""END_DATE"">TO_TIMESTAMP(:DISCARD_DATE_MIN,'YYYY-MM-DD HH24:MI:SS') "
+"              AND ""R"".""END_DATE""<TO_TIMESTAMP(:DISCARD_DATE_MAX,'YYYY-MM-DD HH24:MI:SS'))"
+"   5 - filter(""SC"".""RESERVATION_ID"" IS NOT NULL AND ""SC"".""RESERVATION_ID""=:B1 AND "
+"              ""SC"".""SUCCESS""='FAILURE')"
+"   6 - filter(""PS"".""ACTIVE""='N')"
+"   7 - access(""PS"".""ID""=:B1)"
+ 
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)

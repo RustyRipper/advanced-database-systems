@@ -97,7 +97,6 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
         load_indexes()
     
     # Generowanie EXPLAIN PLAN tylko raz dla każdego zapytania
-    reset_database()
     for query_name, query_data in test_queries.items():
         explain_plan = generate_explain_plan(query_data["script"], query_data["params"])
         # Zapis EXPLAIN PLAN
@@ -105,7 +104,6 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
         print(f"Explain plan saved for {query_name}")
             
     for i in range(iterations):
-        reset_database()
         for query_name, query_data in test_queries.items():
             # Wykonanie zapytania
             execution_time = execute_transaction(query_data["script"], query_data["params"])
@@ -115,7 +113,7 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
         # Zbieranie danych pamięciowych po każdej iteracji
         # query_memory_usage(filename_prefix=filename_prefix + f"_iteration_{i + 1}")
     
-    query_memory_usage(filename_prefix=filename_prefix + f"_memory" )
+    # query_memory_usage(filename_prefix=filename_prefix + f"_memory" )
                        
     if indexes:
         remove_indexes()
@@ -152,13 +150,6 @@ def set_inmemory_compression(table, compression):
     remove_inmemory_compression(table)
     cursor = connection.cursor()
     cursor.execute(f"ALTER TABLE {table} INMEMORY {compression}")
-    connection.commit()
-    cursor.close()
-
-def set_memory_parameters(inmemory_size, pga_aggregate_target):
-    cursor = connection.cursor()
-    cursor.execute(f"ALTER SYSTEM SET INMEMORY_SIZE = {inmemory_size} SCOPE=SPFILE")
-    cursor.execute(f"ALTER SYSTEM SET PGA_AGGREGATE_TARGET = {pga_aggregate_target} SCOPE=SPFILE")
     connection.commit()
     cursor.close()
     
@@ -410,114 +401,147 @@ if __name__ == "__main__":
         pass
     
     #! Indexes
+    remove_inmemory_compression("Reservation")
+    remove_inmemory_compression("ParkingUser")
+    remove_inmemory_compression("ParkingSpot")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="NORMAL")
+    
+    
+    set_inmemory_compression("ParkingUser", "")
+    set_inmemory_compression("ParkingSpot", "")
+    set_inmemory_compression("Reservation", "")
+    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="INMEMORY")
+    
+    
 
     # Test 1: Brak kompresji
-    remove_inmemory_compression("Reservation")
-    remove_inmemory_compression("ParkingUser")
-    remove_inmemory_compression("ParkingSpot")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="NO_compression_with_indexes")
-    query_memory_usage("NO_compression_with_indexes")
+    # remove_inmemory_compression("Reservation")
+    # remove_inmemory_compression("ParkingUser")
+    # remove_inmemory_compression("ParkingSpot")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="NO_compression_with_indexes")
+    # query_memory_usage("NO_compression_with_indexes")
 
-    # Test 2: Kompresja danych High Capacity
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY HIGH")
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_CAPACITY_HIGH_with_indexes")
-    query_memory_usage("MEMCOMPRESS_CAPACITY_HIGH_with_indexes")
+    # # Test 2: Kompresja danych High Capacity
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY HIGH")
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_CAPACITY_HIGH_with_indexes")
+    # query_memory_usage("MEMCOMPRESS_CAPACITY_HIGH_with_indexes")
     
-    # Test : Kompresja danych Low Capacity
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY LOW")
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY LOW")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_CAPACITY_LOW_with_indexes")
-    query_memory_usage("MEMCOMPRESS_CAPACITY_LOW_with_indexes")
+    # # Test : Kompresja danych Low Capacity
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY LOW")
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY LOW")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_CAPACITY_LOW_with_indexes")
+    # query_memory_usage("MEMCOMPRESS_CAPACITY_LOW_with_indexes")
     
-    remove_inmemory_compression("Reservation")
-    remove_inmemory_compression("ParkingUser")
-    remove_inmemory_compression("ParkingSpot")
+    # remove_inmemory_compression("Reservation")
+    # remove_inmemory_compression("ParkingUser")
+    # remove_inmemory_compression("ParkingSpot")
 
-    # Test 3: QUERY PRIORITY Query High
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_HIGH_with_indexes")
-    query_memory_usage("MEMCOMPRESS_HIGH_with_indexes")
+    # # Test 3: QUERY PRIORITY Query High
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_HIGH_with_indexes")
+    # query_memory_usage("MEMCOMPRESS_HIGH_with_indexes")
     
-    # Test 4: QUERY PRIORITY Query Low
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_LOW_with_indexes")
-    query_memory_usage("MEMCOMPRESS_LOW_with_indexes")
+    # reset_database()
     
-    # Test 5: QUERY PRIORITY Query High + PRIORITY HIGH
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("Reservation", "PRIORITY HIGH")
-    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_HIGH_PRIORITY_HIGH_with_indexes")
-    query_memory_usage("MEMCOMPRESS_HIGH_PRIORITY_HIGH_with_indexes")
+    # # Test 4: QUERY PRIORITY Query Low
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_LOW_with_indexes")
+    # query_memory_usage("MEMCOMPRESS_LOW_with_indexes")
     
-    # Test 6: QUERY PRIORITY Query LOW + PRIORITY HIGH
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    set_inmemory_compression("Reservation", "PRIORITY HIGH")
-    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_LOW_PRIORITY_HIGH_with_indexes")
-    query_memory_usage("MEMCOMPRESS_LOW_PRIORITY_HIGH_with_indexes")
+    # reset_database()
     
-    remove_inmemory_compression("Reservation")
-    remove_inmemory_compression("ParkingUser")
-    remove_inmemory_compression("ParkingSpot")
+    # # Test 5: QUERY PRIORITY Query High + PRIORITY HIGH
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    # set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    # set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_HIGH_PRIORITY_HIGH_with_indexes")
+    # query_memory_usage("MEMCOMPRESS_HIGH_PRIORITY_HIGH_with_indexes")
     
-    #! No Indexes
-    #Test 1: Brak kompresji
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="NO_compression_NO_indexes")
-    query_memory_usage("NO_compression_NO_indexes")
+    # reset_database()
     
+    # # Test 6: QUERY PRIORITY Query LOW + PRIORITY HIGH
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    # set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    # set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=True, filename_prefix="MEMCOMPRESS_LOW_PRIORITY_HIGH_with_indexes")
+    # query_memory_usage("MEMCOMPRESS_LOW_PRIORITY_HIGH_with_indexes")
     
-    #Test 2: Kompresja danych High Capacity
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY HIGH")
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_CAPACITY_HIGH_no_indexes")
-    query_memory_usage("MEMCOMPRESS_CAPACITY_HIGH_no_indexes")
+    # reset_database()
+    
+    # remove_inmemory_compression("Reservation")
+    # remove_inmemory_compression("ParkingUser")
+    # remove_inmemory_compression("ParkingSpot")
+    
+    # #! No Indexes
+    # #Test 1: Brak kompresji
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="NO_compression_NO_indexes")
+    # query_memory_usage("NO_compression_NO_indexes")
+    
+    # reset_database()
+    
+    # #Test 2: Kompresja danych High Capacity
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY HIGH")
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_CAPACITY_HIGH_no_indexes")
+    # query_memory_usage("MEMCOMPRESS_CAPACITY_HIGH_no_indexes")
+    
+    # reset_database()
 
-    # Test 3: Kompresja danych Low Capacity
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY LOW")
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY LOW")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_CAPACITY_LOW_no_indexes")
-    query_memory_usage("MEMCOMPRESS_CAPACITY_LOW_no_indexes")
+    # # Test 3: Kompresja danych Low Capacity
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR CAPACITY LOW")
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR CAPACITY LOW")
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_CAPACITY_LOW_no_indexes")
+    # query_memory_usage("MEMCOMPRESS_CAPACITY_LOW_no_indexes")
+    
+    # reset_database()
 
-    remove_inmemory_compression("Reservation")
-    remove_inmemory_compression("ParkingUser")
-    remove_inmemory_compression("ParkingSpot")
+    # remove_inmemory_compression("Reservation")
+    # remove_inmemory_compression("ParkingUser")
+    # remove_inmemory_compression("ParkingSpot")
+    
+    # reset_database()
 
-    # Test 4: QUERY PRIORITY Query High
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_HIGH_no_indexes")
-    query_memory_usage("MEMCOMPRESS_HIGH_no_indexes")
+    # # Test 4: QUERY PRIORITY Query High
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_HIGH_no_indexes")
+    # query_memory_usage("MEMCOMPRESS_HIGH_no_indexes")
+    
+    # reset_database()
 
-    # Test 5: QUERY PRIORITY Query Low
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_LOW_no_indexes")
-    query_memory_usage("MEMCOMPRESS_LOW_no_indexes")
+    # # Test 5: QUERY PRIORITY Query Low
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_LOW_no_indexes")
+    # query_memory_usage("MEMCOMPRESS_LOW_no_indexes")
 
     # Test 6: QUERY PRIORITY Query High + PRIORITY HIGH
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
-    set_inmemory_compression("Reservation", "PRIORITY HIGH")
-    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_HIGH_PRIORITY_HIGH_no_indexes")
-    query_memory_usage("MEMCOMPRESS_HIGH_PRIORITY_HIGH_no_indexes")
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY HIGH")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY HIGH")
+    # set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    # set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_HIGH_PRIORITY_HIGH_no_indexes")
+    # query_memory_usage("MEMCOMPRESS_HIGH_PRIORITY_HIGH_no_indexes")
+    
+    # reset_database()
 
-    # Test 7: QUERY PRIORITY Query LOW + PRIORITY HIGH
-    set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
-    set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
-    set_inmemory_compression("Reservation", "PRIORITY HIGH")
-    set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
-    run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_LOW_PRIORITY_HIGH_no_indexes")
-    query_memory_usage("MEMCOMPRESS_LOW_PRIORITY_HIGH_no_indexes")
+    # # Test 7: QUERY PRIORITY Query LOW + PRIORITY HIGH
+    # set_inmemory_compression("Reservation", "MEMCOMPRESS FOR QUERY LOW")
+    # set_inmemory_compression("ParkingUser", "MEMCOMPRESS FOR QUERY LOW")
+    # set_inmemory_compression("Reservation", "PRIORITY HIGH")
+    # set_inmemory_compression("ParkingUser", "PRIORITY HIGH")
+    # run_load_test(test_queries, iterations=5, indexes=False, filename_prefix="MEMCOMPRESS_LOW_PRIORITY_HIGH_no_indexes")
+    # query_memory_usage("MEMCOMPRESS_LOW_PRIORITY_HIGH_no_indexes")
+    
+    # reset_database()
 
-    remove_inmemory_compression("Reservation")
-    remove_inmemory_compression("ParkingUser")
-    remove_inmemory_compression("ParkingSpot")
+    # remove_inmemory_compression("Reservation")
+    # remove_inmemory_compression("ParkingUser")
+    # remove_inmemory_compression("ParkingSpot")
 
     connection.close()

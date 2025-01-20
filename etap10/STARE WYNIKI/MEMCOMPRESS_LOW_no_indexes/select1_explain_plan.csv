@@ -1,0 +1,67 @@
+PLAN_TABLE_OUTPUT
+Plan hash value: 1377636807
+ 
+-------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                     | Name                    | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                              |                         | 57850 |  2994K| 38045   (1)| 00:00:02 |
+|   1 |  SORT GROUP BY                                |                         |     1 |   187 |            |          |
+|   2 |   NESTED LOOPS SEMI                           |                         |     2 |   374 |   586   (1)| 00:00:01 |
+|*  3 |    HASH JOIN SEMI                             |                         |     2 |   324 |   584   (1)| 00:00:01 |
+|*  4 |     HASH JOIN                                 |                         |    29 |  3857 |   581   (1)| 00:00:01 |
+|*  5 |      TABLE ACCESS BY INDEX ROWID BATCHED      | CLIENTCAR               |    29 |  1566 |    28   (0)| 00:00:01 |
+|*  6 |       INDEX RANGE SCAN                        | SYS_C007479             |   521 |       |     3   (0)| 00:00:01 |
+|*  7 |      TABLE ACCESS FULL                        | RESERVATION             |   739 | 58381 |   553   (1)| 00:00:01 |
+|*  8 |     TABLE ACCESS BY INDEX ROWID BATCHED       | PARKINGSPOT             |    50 |  1450 |     3   (0)| 00:00:01 |
+|*  9 |      INDEX RANGE SCAN                         | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
+|* 10 |    TABLE ACCESS BY INDEX ROWID                | PARKINGUSER             | 19169 |   467K|     1   (0)| 00:00:01 |
+|* 11 |     INDEX UNIQUE SCAN                         | SYS_C007472             |     1 |       |     0   (0)| 00:00:01 |
+|* 12 |  VIEW                                         |                         | 57850 |  2994K| 38045   (1)| 00:00:02 |
+|  13 |   HASH GROUP BY                               |                         | 57850 |  3785K| 38045   (1)| 00:00:02 |
+|* 14 |    HASH JOIN RIGHT OUTER                      |                         | 57850 |  3785K|  1707   (1)| 00:00:01 |
+|  15 |     VIEW                                      | VW_GBF_25               |    53 |  2120 |  1612   (1)| 00:00:01 |
+|  16 |      HASH GROUP BY                            |                         |    53 |  2120 |  1612   (1)| 00:00:01 |
+|  17 |       VIEW                                    | VW_SSQ_1                |    53 |  2120 |  1611   (1)| 00:00:01 |
+|  18 |        HASH GROUP BY                          |                         |    53 |  9646 |  1611   (1)| 00:00:01 |
+|* 19 |         HASH JOIN                             |                         |    53 |  9646 |  1610   (1)| 00:00:01 |
+|* 20 |          HASH JOIN                            |                         |    53 |  7897 |   584   (1)| 00:00:01 |
+|* 21 |           HASH JOIN                           |                         |    53 |  5035 |   556   (1)| 00:00:01 |
+|* 22 |            TABLE ACCESS BY INDEX ROWID BATCHED| PARKINGSPOT             |    50 |  1450 |     3   (0)| 00:00:01 |
+|* 23 |             INDEX RANGE SCAN                  | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
+|* 24 |            TABLE ACCESS FULL                  | RESERVATION             |   739 | 48774 |   553   (1)| 00:00:01 |
+|  25 |           TABLE ACCESS BY INDEX ROWID BATCHED | CLIENTCAR               |  2893 |   152K|    28   (0)| 00:00:01 |
+|* 26 |            INDEX RANGE SCAN                   | SYS_C007479             |   521 |       |     3   (0)| 00:00:01 |
+|* 27 |          TABLE ACCESS FULL                    | STRIPECHARGE            | 14891 |   479K|  1026   (1)| 00:00:01 |
+|  28 |     TABLE ACCESS FULL                         | CLIENTCAR               | 57850 |  1525K|    95   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+"   3 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"")"
+"   4 - access(""R"".""REGISTRATION_NUMBER""=""CCC"".""REGISTRATION_NUMBER"")"
+"   5 - filter(""CCC"".""BRAND""=:B1)"
+"   6 - access(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"       filter(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"   7 - filter(""R"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN AND "
+"              ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD HH24:MI:SS'))"
+"   8 - filter(""PS"".""ACTIVE""='Y')"
+"   9 - access(""PS"".""PARKING_ID""=:PARKING_ID)"
+"  10 - filter(""U"".""ROLE""<>'PARKING_MANAGER' AND ""U"".""ROLE""<>'ADMIN')"
+"  11 - access(""R"".""USER_ID""=""U"".""ID"")"
+"  12 - filter(""TOTAL_RESERVATIONS"">0)"
+"  14 - access(""ITEM_1""(+)=""CC"".""BRAND"")"
+"  19 - access(""SC"".""RESERVATION_ID""=""R"".""ID"")"
+"  20 - access(""R"".""REGISTRATION_NUMBER""=""CCC"".""REGISTRATION_NUMBER"")"
+"  21 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"")"
+"  22 - filter(""PS"".""ACTIVE""='Y')"
+"  23 - access(""PS"".""PARKING_ID""=:PARKING_ID)"
+"  24 - filter(""R"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN AND "
+"              ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD HH24:MI:SS'))"
+"  26 - access(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"       filter(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"  27 - filter(""SC"".""SUCCESS""='SUCCESS' AND ""SC"".""AMOUNT"">:MIN_AMOUNT)"
+ 
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)

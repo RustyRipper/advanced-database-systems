@@ -155,9 +155,9 @@ def set_inmemory_compression(table, compression):
     plsql_block = f"""
     BEGIN
     DBMS_INMEMORY.POPULATE(
-        schema_name => 'NULL',
+        schema_name => NULL,
         table_name => '{table}',
-        subobject_name => 'NULL'
+        subobject_name => NULL
     );
     END;
     """

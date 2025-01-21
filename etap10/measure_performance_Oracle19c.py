@@ -96,6 +96,9 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
     if indexes:
         load_indexes()
     
+    #test run
+    execute_transaction(query_data["script"], query_data["params"])
+
     # Generowanie EXPLAIN PLAN tylko raz dla każdego zapytania
     for query_name, query_data in test_queries.items():
         explain_plan = generate_explain_plan(query_data["script"], query_data["params"])
@@ -150,6 +153,7 @@ def set_inmemory_compression(table, compression):
     remove_inmemory_compression(table)
     cursor = connection.cursor()
     cursor.execute(f"ALTER TABLE {table} INMEMORY {compression}")
+    cursor.execute(f"DBMS_INMEMORY.POPULATE(NULL, {table})")
     connection.commit()
     cursor.close()
     

@@ -154,7 +154,11 @@ def set_inmemory_compression(table, compression):
     # Execute the DBMS_INMEMORY.POPULATE procedure
     plsql_block = f"""
     BEGIN
-    DBMS_INMEMORY.POPULATE(NULL, '{table}');
+    DBMS_INMEMORY.POPULATE(
+        schema_name => 'NULL',
+        table_name => '{table}',
+        subobject_name => 'NULL'
+    );
     END;
     """
     cursor.execute(plsql_block)

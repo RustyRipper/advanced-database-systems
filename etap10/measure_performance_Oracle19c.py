@@ -96,11 +96,9 @@ def run_load_test(test_queries, iterations=10, indexes=False, filename_prefix="l
     if indexes:
         load_indexes()
     
-    #test run
-    execute_transaction(query_data["script"], query_data["params"])
-
     # Generowanie EXPLAIN PLAN tylko raz dla każdego zapytania
     for query_name, query_data in test_queries.items():
+        execute_transaction(query_data["script"], query_data["params"])
         explain_plan = generate_explain_plan(query_data["script"], query_data["params"])
         # Zapis EXPLAIN PLAN
         explain_plan.to_csv(os.path.join(test_results_dir, f"{query_name}_explain_plan.csv"), index=False)

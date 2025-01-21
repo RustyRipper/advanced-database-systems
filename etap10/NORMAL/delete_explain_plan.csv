@@ -4,14 +4,14 @@ Plan hash value: 1287764642
 ---------------------------------------------------------------------------------------------------
 | Id  | Operation                     | Name              | Rows  | Bytes | Cost (%CPU)| Time     |
 ---------------------------------------------------------------------------------------------------
-|   0 | DELETE STATEMENT              |                   |   739 | 50252 |  1662   (1)| 00:00:01 |
+|   0 | DELETE STATEMENT              |                   |     1 |    38 |  1678   (1)| 00:00:01 |
 |   1 |  DELETE                       | RESERVATION       |       |       |            |          |
 |*  2 |   FILTER                      |                   |       |       |            |          |
 |*  3 |    FILTER                     |                   |       |       |            |          |
-|*  4 |     TABLE ACCESS FULL         | RESERVATION       |   739 | 50252 |   553   (1)| 00:00:01 |
-|   5 |    BITMAP CONVERSION TO ROWIDS|                   |    65 |  1300 |     3   (0)| 00:00:01 |
+|*  4 |     TABLE ACCESS FULL         | RESERVATION       |   750 | 28500 |   553   (1)| 00:00:01 |
+|   5 |    BITMAP CONVERSION TO ROWIDS|                   |     1 |    13 |     3   (0)| 00:00:01 |
 |*  6 |     BITMAP INDEX SINGLE VALUE | IDX_BITMAP_DELETE |       |       |            |          |
-|*  7 |    TABLE ACCESS BY INDEX ROWID| PARKINGSPOT       |     1 |    16 |     2   (0)| 00:00:01 |
+|*  7 |    TABLE ACCESS BY INDEX ROWID| PARKINGSPOT       |     1 |     6 |     2   (0)| 00:00:01 |
 |*  8 |     INDEX UNIQUE SCAN         | SYS_C007465       |     1 |       |     1   (0)| 00:00:01 |
 ---------------------------------------------------------------------------------------------------
  
@@ -30,7 +30,3 @@ Predicate Information (identified by operation id):
 "       filter(""SC"".""RESERVATION_ID"" IS NOT NULL)"
 "   7 - filter(""PS"".""ACTIVE""='N')"
 "   8 - access(""PS"".""ID""=:B1)"
- 
-Note
------
-   - dynamic statistics used: dynamic sampling (level=2)

@@ -1,78 +1,73 @@
 PLAN_TABLE_OUTPUT
-Plan hash value: 617790009
+Plan hash value: 2392778647
  
---------------------------------------------------------------------------------------------------------------------------
-| Id  | Operation                                      | Name                    | Rows  | Bytes | Cost (%CPU)| Time     |
---------------------------------------------------------------------------------------------------------------------------
-|   0 | SELECT STATEMENT                               |                         | 57850 |  2994K| 21633   (1)| 00:00:01 |
-|   1 |  SORT GROUP BY                                 |                         |     1 |   187 |            |          |
-|   2 |   NESTED LOOPS SEMI                            |                         |     2 |   374 |   334   (0)| 00:00:01 |
-|*  3 |    HASH JOIN SEMI                              |                         |     2 |   324 |   332   (0)| 00:00:01 |
-|   4 |     NESTED LOOPS                               |                         |    53 |  5724 |   330   (0)| 00:00:01 |
-|   5 |      NESTED LOOPS                              |                         |    53 |  5724 |   330   (0)| 00:00:01 |
-|*  6 |       TABLE ACCESS BY INDEX ROWID BATCHED      | PARKINGSPOT             |    50 |  1450 |     3   (0)| 00:00:01 |
-|*  7 |        INDEX RANGE SCAN                        | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
-|   8 |       BITMAP CONVERSION TO ROWIDS              |                         |       |       |            |          |
-|*  9 |        BITMAP INDEX RANGE SCAN                 | IDX_BITMAP_SELECT3_DATE |       |       |            |          |
-|* 10 |      TABLE ACCESS BY INDEX ROWID               | RESERVATION             |     1 |    79 |   330   (0)| 00:00:01 |
-|* 11 |     INDEX RANGE SCAN                           | IDX_CC_BRAND_REG        |    29 |  1566 |     2   (0)| 00:00:01 |
-|* 12 |    TABLE ACCESS BY INDEX ROWID                 | PARKINGUSER             | 19169 |   467K|     1   (0)| 00:00:01 |
-|* 13 |     INDEX UNIQUE SCAN                          | SYS_C007472             |     1 |       |     0   (0)| 00:00:01 |
-|* 14 |  VIEW                                          |                         | 57850 |  2994K| 21633   (1)| 00:00:01 |
-|  15 |   HASH GROUP BY                                |                         | 57850 |  3785K| 21633   (1)| 00:00:01 |
-|* 16 |    HASH JOIN RIGHT OUTER                       |                         | 57850 |  3785K|   895   (1)| 00:00:01 |
-|  17 |     VIEW                                       | VW_GBF_25               |    53 |  2120 |   799   (1)| 00:00:01 |
-|  18 |      HASH GROUP BY                             |                         |    53 |  2120 |   799   (1)| 00:00:01 |
-|  19 |       VIEW                                     | VW_SSQ_1                |    53 |  2120 |   798   (1)| 00:00:01 |
-|  20 |        HASH GROUP BY                           |                         |    53 |  9646 |   798   (1)| 00:00:01 |
-|* 21 |         HASH JOIN                              |                         |    53 |  9646 |   797   (0)| 00:00:01 |
-|  22 |          NESTED LOOPS                          |                         |    53 |  6784 |   769   (0)| 00:00:01 |
-|  23 |           NESTED LOOPS                         |                         |    53 |  6784 |   769   (0)| 00:00:01 |
-|  24 |            NESTED LOOPS                        |                         |    53 |  5035 |   330   (0)| 00:00:01 |
-|* 25 |             TABLE ACCESS BY INDEX ROWID BATCHED| PARKINGSPOT             |    50 |  1450 |     3   (0)| 00:00:01 |
-|* 26 |              INDEX RANGE SCAN                  | UNIQUE_SPOT_PER_PARKING |    40 |       |     2   (0)| 00:00:01 |
-|* 27 |             TABLE ACCESS BY INDEX ROWID BATCHED| RESERVATION             |     1 |    66 |   330   (0)| 00:00:01 |
-|  28 |              BITMAP CONVERSION TO ROWIDS       |                         |       |       |            |          |
-|* 29 |               BITMAP INDEX RANGE SCAN          | IDX_BITMAP_SELECT3_DATE |       |       |            |          |
-|  30 |            BITMAP CONVERSION TO ROWIDS         |                         |       |       |            |          |
-|* 31 |             BITMAP INDEX SINGLE VALUE          | IDX_BITMAP_DELETE       |       |       |            |          |
-|* 32 |           TABLE ACCESS BY INDEX ROWID          | STRIPECHARGE            |     1 |    33 |   769   (0)| 00:00:01 |
-|  33 |          TABLE ACCESS BY INDEX ROWID BATCHED   | CLIENTCAR               |  2893 |   152K|    28   (0)| 00:00:01 |
-|* 34 |           INDEX RANGE SCAN                     | SYS_C007479             |   521 |       |     3   (0)| 00:00:01 |
-|  35 |     TABLE ACCESS FULL                          | CLIENTCAR               | 57850 |  1525K|    95   (0)| 00:00:01 |
---------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                                       | Name                    | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                                |                         |     3 |   159 |  2165   (1)| 00:00:01 |
+|   1 |  SORT GROUP BY                                  |                         |     1 |    71 |            |          |
+|   2 |   NESTED LOOPS SEMI                             |                         |     3 |   213 |   347   (0)| 00:00:01 |
+|*  3 |    HASH JOIN SEMI                               |                         |     3 |   180 |   344   (0)| 00:00:01 |
+|   4 |     NESTED LOOPS                                |                         |    53 |  2279 |   342   (0)| 00:00:01 |
+|   5 |      NESTED LOOPS                               |                         |    53 |  2279 |   342   (0)| 00:00:01 |
+|*  6 |       TABLE ACCESS FULL                         | PARKINGSPOT             |    50 |   450 |     9   (0)| 00:00:01 |
+|   7 |       BITMAP CONVERSION TO ROWIDS               |                         |       |       |            |          |
+|*  8 |        BITMAP INDEX RANGE SCAN                  | IDX_BITMAP_SELECT3_DATE |       |       |            |          |
+|*  9 |      TABLE ACCESS BY INDEX ROWID                | RESERVATION             |     1 |    34 |   342   (0)| 00:00:01 |
+|* 10 |     INDEX RANGE SCAN                            | IDX_CC_BRAND_REG        |    40 |   680 |     2   (0)| 00:00:01 |
+|* 11 |    TABLE ACCESS BY INDEX ROWID                  | PARKINGUSER             | 19615 |   210K|     1   (0)| 00:00:01 |
+|* 12 |     INDEX UNIQUE SCAN                           | SYS_C007472             |     1 |       |     0   (0)| 00:00:01 |
+|* 13 |  VIEW                                           |                         |     3 |   159 |  2165   (1)| 00:00:01 |
+|  14 |   HASH GROUP BY                                 |                         |     3 |    87 |  2165   (1)| 00:00:01 |
+|* 15 |    HASH JOIN RIGHT OUTER                        |                         | 50000 |  1416K|  1122   (1)| 00:00:01 |
+|  16 |     VIEW                                        | VW_SSQ_1                |     3 |    63 |  1026   (1)| 00:00:01 |
+|  17 |      HASH GROUP BY                              |                         |     3 |   117 |  1026   (1)| 00:00:01 |
+|  18 |       NESTED LOOPS                              |                         |     3 |   117 |  1025   (1)| 00:00:01 |
+|  19 |        NESTED LOOPS                             |                         |     3 |   117 |  1025   (1)| 00:00:01 |
+|  20 |         VIEW                                    | VW_GBC_19               |     3 |    66 |  1022   (1)| 00:00:01 |
+|  21 |          HASH GROUP BY                          |                         |     3 |   168 |  1022   (1)| 00:00:01 |
+|  22 |           NESTED LOOPS                          |                         |    53 |  2968 |  1021   (0)| 00:00:01 |
+|  23 |            NESTED LOOPS                         |                         |    53 |  2968 |  1021   (0)| 00:00:01 |
+|  24 |             NESTED LOOPS                        |                         |    53 |  2014 |   342   (0)| 00:00:01 |
+|* 25 |              TABLE ACCESS FULL                  | PARKINGSPOT             |    50 |   450 |     9   (0)| 00:00:01 |
+|* 26 |              TABLE ACCESS BY INDEX ROWID BATCHED| RESERVATION             |     1 |    29 |   342   (0)| 00:00:01 |
+|  27 |               BITMAP CONVERSION TO ROWIDS       |                         |       |       |            |          |
+|* 28 |                BITMAP INDEX RANGE SCAN          | IDX_BITMAP_SELECT3_DATE |       |       |            |          |
+|  29 |             BITMAP CONVERSION TO ROWIDS         |                         |       |       |            |          |
+|* 30 |              BITMAP INDEX SINGLE VALUE          | IDX_BITMAP_DELETE       |       |       |            |          |
+|* 31 |            TABLE ACCESS BY INDEX ROWID          | STRIPECHARGE            |     1 |    18 |  1021   (0)| 00:00:01 |
+|* 32 |         INDEX UNIQUE SCAN                       | SYS_C007479             |     1 |       |     0   (0)| 00:00:01 |
+|  33 |        TABLE ACCESS BY INDEX ROWID              | CLIENTCAR               |     1 |    17 |     1   (0)| 00:00:01 |
+|  34 |     TABLE ACCESS FULL                           | CLIENTCAR               | 50000 |   390K|    95   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------------------------------------------
  
 Predicate Information (identified by operation id):
 ---------------------------------------------------
  
 "   3 - access(""R"".""REGISTRATION_NUMBER""=""CCC"".""REGISTRATION_NUMBER"")"
-"   6 - filter(""PS"".""ACTIVE""='Y')"
-"   7 - access(""PS"".""PARKING_ID""=:PARKING_ID)"
-"   9 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"" AND ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD "
+"   6 - filter(""PS"".""PARKING_ID""=:PARKING_ID AND ""PS"".""ACTIVE""='Y')"
+"   8 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"" AND ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD "
               HH24:MI:SS'))
 "       filter(""R"".""PARKING_SPOT_ID""=""PS"".""ID"" AND ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD "
               HH24:MI:SS'))
-"  10 - filter(""R"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
-"  11 - access(""CCC"".""BRAND""=:B1 AND ""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"   9 - filter(""R"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"  10 - access(""CCC"".""BRAND""=:B1 AND ""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
 "       filter(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
-"  12 - filter(""U"".""ROLE""<>'PARKING_MANAGER' AND ""U"".""ROLE""<>'ADMIN')"
-"  13 - access(""R"".""USER_ID""=""U"".""ID"")"
-"  14 - filter(""TOTAL_RESERVATIONS"">0)"
-"  16 - access(""ITEM_1""(+)=""CC"".""BRAND"")"
-"  21 - access(""R"".""REGISTRATION_NUMBER""=""CCC"".""REGISTRATION_NUMBER"")"
-"  25 - filter(""PS"".""ACTIVE""='Y')"
-"  26 - access(""PS"".""PARKING_ID""=:PARKING_ID)"
-"  27 - filter(""R"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
-"  29 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"" AND ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD "
+"  11 - filter(""U"".""ROLE""<>'ADMIN' AND ""U"".""ROLE""<>'PARKING_MANAGER')"
+"  12 - access(""R"".""USER_ID""=""U"".""ID"")"
+"  13 - filter(""TOTAL_RESERVATIONS"">0)"
+"  15 - access(""ITEM_1""(+)=""CC"".""BRAND"")"
+"  25 - filter(""PS"".""PARKING_ID""=:PARKING_ID AND ""PS"".""ACTIVE""='Y')"
+"  26 - filter(""R"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"  28 - access(""R"".""PARKING_SPOT_ID""=""PS"".""ID"" AND ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD "
               HH24:MI:SS'))
 "       filter(""R"".""PARKING_SPOT_ID""=""PS"".""ID"" AND ""R"".""START_DATE"">=TO_TIMESTAMP(:MIN_DATE,'YYYY-MM-DD "
               HH24:MI:SS'))
-"  31 - access(""SC"".""RESERVATION_ID""=""R"".""ID"" AND ""SC"".""SUCCESS""='SUCCESS')"
-"  32 - filter(""SC"".""AMOUNT"">:MIN_AMOUNT)"
-"  34 - access(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
+"  30 - access(""SC"".""RESERVATION_ID""=""R"".""ID"" AND ""SC"".""SUCCESS""='SUCCESS')"
+"  31 - filter(""SC"".""AMOUNT"">:MIN_AMOUNT)"
+"  32 - access(""ITEM_1""=""CCC"".""REGISTRATION_NUMBER"")"
 "       filter(""CCC"".""REGISTRATION_NUMBER"" LIKE :REGISTRATION_NUMBER_PATTERN)"
  
 Note
 -----
-   - dynamic statistics used: dynamic sampling (level=2)
    - this is an adaptive plan

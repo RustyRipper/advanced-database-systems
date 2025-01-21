@@ -152,16 +152,16 @@ def set_inmemory_compression(table, compression):
     cursor = connection.cursor()
     cursor.execute(f"ALTER TABLE {table} INMEMORY {compression}")
     # Execute the DBMS_INMEMORY.POPULATE procedure
-    plsql_block = f"""
-    BEGIN
-    DBMS_INMEMORY.POPULATE(
-        schema_name => NULL,
-        table_name => '{table}',
-        subobject_name => NULL
-    );
-    END;
-    """
-    cursor.execute(plsql_block)
+    # plsql_block = f"""
+    # BEGIN
+    # DBMS_INMEMORY.POPULATE(
+    #     schema_name => NULL,
+    #     table_name => '{table}',
+    #     subobject_name => NULL
+    # );
+    # END;
+    # """
+    # cursor.execute(plsql_block)
     connection.commit()
     cursor.close()
     

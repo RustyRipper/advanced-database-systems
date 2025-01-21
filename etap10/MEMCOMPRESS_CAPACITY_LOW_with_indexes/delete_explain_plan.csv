@@ -1,0 +1,32 @@
+PLAN_TABLE_OUTPUT
+Plan hash value: 1287764642
+ 
+---------------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name              | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------------------
+|   0 | DELETE STATEMENT              |                   |     1 |    38 |  1678   (1)| 00:00:01 |
+|   1 |  DELETE                       | RESERVATION       |       |       |            |          |
+|*  2 |   FILTER                      |                   |       |       |            |          |
+|*  3 |    FILTER                     |                   |       |       |            |          |
+|*  4 |     TABLE ACCESS FULL         | RESERVATION       |   750 | 28500 |   553   (1)| 00:00:01 |
+|   5 |    BITMAP CONVERSION TO ROWIDS|                   |     1 |    13 |     3   (0)| 00:00:01 |
+|*  6 |     BITMAP INDEX SINGLE VALUE | IDX_BITMAP_DELETE |       |       |            |          |
+|*  7 |    TABLE ACCESS BY INDEX ROWID| PARKINGSPOT       |     1 |     6 |     2   (0)| 00:00:01 |
+|*  8 |     INDEX UNIQUE SCAN         | SYS_C007465       |     1 |       |     1   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+"   2 - filter( EXISTS (SELECT 0 FROM ""STRIPECHARGE"" ""SC"" WHERE ""SC"".""RESERVATION_ID"" IS "
+"              NOT NULL AND ""SC"".""SUCCESS""='FAILURE' AND ""SC"".""RESERVATION_ID""=:B1 AND "
+"              ""SC"".""RESERVATION_ID"" IS NOT NULL) OR  EXISTS (SELECT 0 FROM ""PARKINGSPOT"" ""PS"" WHERE "
+"              ""PS"".""ID""=:B2 AND ""PS"".""ACTIVE""='N'))"
+"   3 - filter(TO_TIMESTAMP(:DISCARD_DATE_MAX,'YYYY-MM-DD "
+"              HH24:MI:SS')>TO_TIMESTAMP(:DISCARD_DATE_MIN,'YYYY-MM-DD HH24:MI:SS'))"
+"   4 - filter(""R"".""END_DATE"">TO_TIMESTAMP(:DISCARD_DATE_MIN,'YYYY-MM-DD HH24:MI:SS') AND "
+"              ""R"".""END_DATE""<TO_TIMESTAMP(:DISCARD_DATE_MAX,'YYYY-MM-DD HH24:MI:SS'))"
+"   6 - access(""SC"".""RESERVATION_ID""=:B1 AND ""SC"".""SUCCESS""='FAILURE')"
+"       filter(""SC"".""RESERVATION_ID"" IS NOT NULL)"
+"   7 - filter(""PS"".""ACTIVE""='N')"
+"   8 - access(""PS"".""ID""=:B1)"

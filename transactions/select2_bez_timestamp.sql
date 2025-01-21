@@ -1,4 +1,4 @@
-SELECT cc.brand,
+SELECT /*+ INMEMORY */ cc.brand,
        cc.color,
        COUNT(r.id) AS total_parking_count,
        (SELECT COUNT(*)

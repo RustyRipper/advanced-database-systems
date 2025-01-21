@@ -1,5 +1,5 @@
 -- EXPLAIN PLAN FOR
-SELECT u.id || ' ' || u.firstname || ' ' || u.lastname AS parking_user,
+SELECT /*+ INMEMORY */ u.id || ' ' || u.firstname || ' ' || u.lastname AS parking_user,
        ps.id                                           AS parking_spot_id,
        COUNT(r.id)                                     AS total_reservations,
        SUM(r.amount)                                   AS total_amount,

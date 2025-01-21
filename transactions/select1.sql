@@ -1,4 +1,4 @@
-SELECT car_brand, total_reservations, total_amount
+SELECT /*+ INMEMORY */ car_brand, total_reservations, total_amount 
 FROM (
 SELECT cc.brand                   AS car_brand,
        (SELECT COUNT(DISTINCT r.id)
